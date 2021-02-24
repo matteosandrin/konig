@@ -38,6 +38,7 @@ rule token = parse
 | "int"    { INT }
 | "bool"   { BOOL }
 | "float"  { FLOAT }
+| "list"   { LIST }
 | "void"   { VOID }
 | "true"   { BLIT(true)  }
 | "false"  { BLIT(false) }
