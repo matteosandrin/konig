@@ -1,5 +1,5 @@
 parser:
-	ocamlyacc parser.mly
+	ocamlyacc -v parser.mly
 	
 clean:
-	rm parser.ml parser.mli
+	rm parser.ml parser.mli parser.output

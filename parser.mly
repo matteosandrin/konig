@@ -4,7 +4,7 @@
 // open Ast
 // %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
+%token SEMI LPAREN RPAREN LBRACE RBRACE LSQUARE RSQUARE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
 %token ADDNODE DELNODE
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
 %token KO RETURN IF ELSE FOR WHILE INT BOOL FLOAT CHAR LIST VOID
@@ -94,6 +94,7 @@ expr:
   | BLIT             { BoolLit($1)            }
   | STRLIT           { () } // TODO: add implementation
   | ID               { Id($1)                 }
+  | ID LSQUARE expr RSQUARE { () } // TODO: add implementation (list indexing)
   | expr PLUS   expr { Binop($1, Add,   $3)   }
   | expr MINUS  expr { Binop($1, Sub,   $3)   }
   | expr TIMES  expr { Binop($1, Mult,  $3)   }
