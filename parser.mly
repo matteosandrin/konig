@@ -7,7 +7,7 @@
 %token SEMI LPAREN RPAREN LBRACE RBRACE LSQUARE RSQUARE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
 %token ADDNODE DELNODE
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
-%token KO RETURN IF ELSE FOR WHILE INT BOOL FLOAT CHAR LIST VOID
+%token KO RETURN IF ELSE FOR WHILE INT BOOL FLOAT CHAR LIST NODE GRAPH VOID
 %token <int> LITERAL
 %token <bool> BLIT
 %token <string> ID FLIT
@@ -59,9 +59,11 @@ typ:
     INT   { Int   }
   | BOOL  { Bool  }
   | FLOAT { Float }
-  | CHAR { () } // TODO: add implementation
+  | CHAR  { () } // TODO: add implementation
+  | GRAPH { () } // TODO: add implementation
   | VOID  { Void  }
-  | LIST LT typ GT { () } // TODO: add implementation
+  | LIST LT typ GT { () } // TODO: add implementation (list<int>)
+  | NODE LT typ GT { () } // TODO: add impelenetation (node<int>)
 
 vdecl_list:
     /* nothing */    { [] }

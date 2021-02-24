@@ -42,6 +42,8 @@ rule token = parse
 | "float"  { FLOAT }
 | "char"   { CHAR }
 | "list"   { LIST }
+| "node"   { NODE }
+| "graph"  { GRAPH }
 | "void"   { VOID }
 | "true"   { BLIT(true)  }
 | "false"  { BLIT(false) }
