@@ -11,6 +11,7 @@
 %token <int> LITERAL
 %token <bool> BLIT
 %token <string> ID FLIT
+%token <string> STRLIT
 %token EOF
 
 %start program
@@ -87,8 +88,9 @@ expr_opt:
 
 expr:
     LITERAL          { Literal($1)            }
-  | FLIT	     { Fliteral($1)           }
+  | FLIT	         { Fliteral($1)           }
   | BLIT             { BoolLit($1)            }
+  | STRLIT           { () } // TODO: add implementation
   | ID               { Id($1)                 }
   | expr PLUS   expr { Binop($1, Add,   $3)   }
   | expr MINUS  expr { Binop($1, Sub,   $3)   }
