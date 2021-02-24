@@ -7,7 +7,7 @@
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
 %token ADDNODE DELNODE
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
-%token KO RETURN IF ELSE FOR WHILE INT BOOL FLOAT LIST VOID
+%token KO RETURN IF ELSE FOR WHILE INT BOOL FLOAT CHAR LIST VOID
 %token <int> LITERAL
 %token <bool> BLIT
 %token <string> ID FLIT
@@ -59,6 +59,7 @@ typ:
     INT   { Int   }
   | BOOL  { Bool  }
   | FLOAT { Float }
+  | CHAR { () } // TODO: add implementation
   | VOID  { Void  }
   | LIST LT typ GT { () } // TODO: add implementation
 
