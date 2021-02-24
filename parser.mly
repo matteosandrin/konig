@@ -94,7 +94,6 @@ expr:
   | BLIT             { BoolLit($1)            }
   | STRLIT           { () } // TODO: add implementation
   | ID               { Id($1)                 }
-  | ID LSQUARE expr RSQUARE { () } // TODO: add implementation (list indexing)
   | expr PLUS   expr { Binop($1, Add,   $3)   }
   | expr MINUS  expr { Binop($1, Sub,   $3)   }
   | expr TIMES  expr { Binop($1, Mult,  $3)   }
@@ -114,6 +113,8 @@ expr:
   | ID ASSIGN expr   { Assign($1, $3)         }
   | ID LPAREN args_opt RPAREN { Call($1, $3)  }
   | LPAREN expr RPAREN { $2                   }
+  | ID LSQUARE expr RSQUARE { () } // TODO: add implementation (list indexing)
+  | LSQUARE args_opt RSQUARE { () } // TODO: add implementation (list literal)
 
 args_opt:
     /* nothing */ { [] }
