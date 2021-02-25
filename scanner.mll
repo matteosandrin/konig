@@ -44,6 +44,7 @@ rule token = parse
 | "char"   { CHAR }
 | "list"   { LIST }
 | "node"   { NODE }
+| "edge"   { EDGE }
 | "graph"  { GRAPH }
 | "void"   { VOID }
 | "true"   { BLIT(true)  }
@@ -52,6 +53,7 @@ rule token = parse
 | "!"      { DELNODE }
 | digits as lxm { LITERAL(int_of_string lxm) }
 | digits '.' digit* ( ['e' 'E'] ['+' '-']? digits )? as lxm { FLIT(lxm) }
+| "."     { DOT }
 | '"' [^'"']* '"' as lxm { STRLIT(lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*     as lxm { ID(lxm) }
 | eof { EOF }
