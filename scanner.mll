@@ -44,6 +44,7 @@ rule token = parse
 | "char"   { CHAR }
 | "list"   { LIST }
 | "node"   { NODE }
+| "edge"   { EDGE }
 | "graph"  { GRAPH }
 | "void"   { VOID }
 | "true"   { BLIT(true)  }
