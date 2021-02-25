@@ -4,7 +4,7 @@
 // open Ast
 // %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE LSQUARE RSQUARE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
+%token SEMI LPAREN RPAREN LBRACE RBRACE LSQUARE RSQUARE COMMA DOT PLUS MINUS TIMES DIVIDE ASSIGN
 %token ADDNODE DELNODE
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
 %token KO NEW RETURN IF ELSE FOR WHILE INT BOOL FLOAT CHAR LIST NODE GRAPH VOID
@@ -90,12 +90,16 @@ expr_opt:
     /* nothing */ { Noexpr }
   | expr          { $1 }
 
+expr_id:
+    ID               { Id($1)                 }
+  | ID DOT expr_id   { ()                     } // TODO: add implementation (access data member)
+
 expr:
     LITERAL          { Literal($1)            }
   | FLIT	         { Fliteral($1)           }
   | BLIT             { BoolLit($1)            }
-  | STRLIT           { () } // TODO: add implementation
-  | ID               { Id($1)                 }
+  | STRLIT           { ()                     } // TODO: add implementation
+  | expr_id          { Id($1)                 }
   | expr PLUS   expr { Binop($1, Add,   $3)   }
   | expr MINUS  expr { Binop($1, Sub,   $3)   }
   | expr TIMES  expr { Binop($1, Mult,  $3)   }
@@ -107,15 +111,15 @@ expr:
   | expr GT     expr { Binop($1, Greater, $3) }
   | expr GEQ    expr { Binop($1, Geq,   $3)   }
   | expr AND    expr { Binop($1, And,   $3)   }
-  | expr OR     expr { Binop($1, Or,    $3)   }
+  | expr OR     expr { Binop($1, Or,    $3)   } 
   | expr ADDNODE expr { () } // TODO: add implementation
   | expr DELNODE expr { () } // TODO: add implementation
   | MINUS expr %prec NOT { Unop(Neg, $2)      }
   | NOT expr         { Unop(Not, $2)          }
-  | ID ASSIGN expr   { Assign($1, $3)         }
-  | ID LPAREN args_opt RPAREN { Call($1, $3)  }
+  | expr_id ASSIGN expr   { Assign($1, $3)         }
+  | expr_id LPAREN args_opt RPAREN { Call($1, $3)  }
   | LPAREN expr RPAREN { $2                   }
-  | ID LSQUARE expr RSQUARE { () } // TODO: add implementation (list indexing)
+  | expr_id LSQUARE expr RSQUARE { () } // TODO: add implementation (list indexing)
   | LSQUARE args_opt RSQUARE { () } // TODO: add implementation (list literal)
   | NEW NODE LBRACE args_opt RBRACE { () } // TODO: add implementation (node literal)
   | NEW GRAPH LBRACE args_opt RBRACE { () } // TODO: add implementation (graph literal)
