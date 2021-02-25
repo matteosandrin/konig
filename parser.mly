@@ -7,7 +7,7 @@
 %token SEMI LPAREN RPAREN LBRACE RBRACE LSQUARE RSQUARE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
 %token ADDNODE DELNODE
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
-%token KO RETURN IF ELSE FOR WHILE INT BOOL FLOAT CHAR LIST NODE GRAPH VOID
+%token KO NEW RETURN IF ELSE FOR WHILE INT BOOL FLOAT CHAR LIST NODE GRAPH VOID
 %token <int> LITERAL
 %token <bool> BLIT
 %token <string> ID FLIT
@@ -117,6 +117,8 @@ expr:
   | LPAREN expr RPAREN { $2                   }
   | ID LSQUARE expr RSQUARE { () } // TODO: add implementation (list indexing)
   | LSQUARE args_opt RSQUARE { () } // TODO: add implementation (list literal)
+  | NEW NODE LBRACE args_opt RBRACE { () } // TODO: add implementation (node literal)
+  | NEW GRAPH LBRACE args_opt RBRACE { () } // TODO: add implementation (graph literal)
 
 args_opt:
     /* nothing */ { [] }
