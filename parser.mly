@@ -4,12 +4,14 @@
 // open Ast
 // %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
+%token SEMI LPAREN RPAREN LBRACE RBRACE LSQUARE RSQUARE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
+%token ADDNODE DELNODE
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
-%token RETURN IF ELSE FOR WHILE INT BOOL FLOAT VOID
+%token KO NEW RETURN IF ELSE FOR WHILE INT BOOL FLOAT CHAR LIST NODE GRAPH VOID
 %token <int> LITERAL
 %token <bool> BLIT
 %token <string> ID FLIT
+%token <string> STRLIT
 %token EOF
 
 %start program
@@ -22,6 +24,7 @@
 %left AND
 %left EQ NEQ
 %left LT GT LEQ GEQ
+%left ADDNODE DELNODE
 %left PLUS MINUS
 %left TIMES DIVIDE
 %right NOT
@@ -37,12 +40,12 @@ decls:
  | decls fdecl { (fst $1, ($2 :: snd $1)) }
 
 fdecl:
-   typ ID LPAREN formals_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
-     { { typ = $1;
-	 fname = $2;
-	 formals = List.rev $4;
-	 locals = List.rev $7;
-	 body = List.rev $8 } }
+   KO typ ID LPAREN formals_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
+     { { typ = $2;
+	 fname = $3;
+	 formals = List.rev $5;
+	 locals = List.rev $8;
+	 body = List.rev $9 } }
 
 formals_opt:
     /* nothing */ { [] }
@@ -56,7 +59,11 @@ typ:
     INT   { Int   }
   | BOOL  { Bool  }
   | FLOAT { Float }
+  | CHAR  { () } // TODO: add implementation
+  | GRAPH { () } // TODO: add implementation
   | VOID  { Void  }
+  | LIST LT typ GT { () } // TODO: add implementation (list<int>)
+  | NODE LT typ GT { () } // TODO: add impelenetation (node<int>)
 
 vdecl_list:
     /* nothing */    { [] }
@@ -85,8 +92,9 @@ expr_opt:
 
 expr:
     LITERAL          { Literal($1)            }
-  | FLIT	     { Fliteral($1)           }
+  | FLIT	         { Fliteral($1)           }
   | BLIT             { BoolLit($1)            }
+  | STRLIT           { () } // TODO: add implementation
   | ID               { Id($1)                 }
   | expr PLUS   expr { Binop($1, Add,   $3)   }
   | expr MINUS  expr { Binop($1, Sub,   $3)   }
@@ -100,11 +108,17 @@ expr:
   | expr GEQ    expr { Binop($1, Geq,   $3)   }
   | expr AND    expr { Binop($1, And,   $3)   }
   | expr OR     expr { Binop($1, Or,    $3)   }
+  | expr ADDNODE expr { () } // TODO: add implementation
+  | expr DELNODE expr { () } // TODO: add implementation
   | MINUS expr %prec NOT { Unop(Neg, $2)      }
   | NOT expr         { Unop(Not, $2)          }
   | ID ASSIGN expr   { Assign($1, $3)         }
   | ID LPAREN args_opt RPAREN { Call($1, $3)  }
   | LPAREN expr RPAREN { $2                   }
+  | ID LSQUARE expr RSQUARE { () } // TODO: add implementation (list indexing)
+  | LSQUARE args_opt RSQUARE { () } // TODO: add implementation (list literal)
+  | NEW NODE LBRACE args_opt RBRACE { () } // TODO: add implementation (node literal)
+  | NEW GRAPH LBRACE args_opt RBRACE { () } // TODO: add implementation (graph literal)
 
 args_opt:
     /* nothing */ { [] }

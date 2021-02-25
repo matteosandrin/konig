@@ -7,11 +7,14 @@ let digits = digit+
 
 rule token = parse
   [' ' '\t' '\r' '\n'] { token lexbuf } (* Whitespace *)
-| "/*"     { comment lexbuf }           (* Comments *)
+| "/*"     { multi_comment lexbuf }     (* Multiline comments *)
+| "//"     { comment lexbuf }           (* Single line comments *)
 | '('      { LPAREN }
 | ')'      { RPAREN }
 | '{'      { LBRACE }
 | '}'      { RBRACE }
+| '['      { LSQUARE }
+| ']'      { RSQUARE }
 | ';'      { SEMI }
 | ','      { COMMA }
 | '+'      { PLUS }
@@ -25,26 +28,39 @@ rule token = parse
 | "<="     { LEQ }
 | ">"      { GT }
 | ">="     { GEQ }
-| "&&"     { AND }
-| "||"     { OR }
-| "!"      { NOT }
+| "and"    { AND }
+| "or"     { OR }
+| "not"    { NOT }
 | "if"     { IF }
 | "else"   { ELSE }
 | "for"    { FOR }
 | "while"  { WHILE }
+| "ko"     { KO }
+| "new"    { NEW }
 | "return" { RETURN }
 | "int"    { INT }
 | "bool"   { BOOL }
 | "float"  { FLOAT }
+| "char"   { CHAR }
+| "list"   { LIST }
+| "node"   { NODE }
+| "graph"  { GRAPH }
 | "void"   { VOID }
 | "true"   { BLIT(true)  }
 | "false"  { BLIT(false) }
+| "@"      { ADDNODE }
+| "!"      { DELNODE }
 | digits as lxm { LITERAL(int_of_string lxm) }
-| digits '.'  digit* ( ['e' 'E'] ['+' '-']? digits )? as lxm { FLIT(lxm) }
+| digits '.' digit* ( ['e' 'E'] ['+' '-']? digits )? as lxm { FLIT(lxm) }
+| '"' [^'"']* '"' as lxm { STRLIT(lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*     as lxm { ID(lxm) }
 | eof { EOF }
 | _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
 
-and comment = parse
+and multi_comment = parse
   "*/" { token lexbuf }
-| _    { comment lexbuf }
+| _    { multi_comment lexbuf }
+
+and comment = parse
+  ['\r' '\n'] { token lexbuf }
+| _           { comment lexbuf }
