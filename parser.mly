@@ -97,7 +97,7 @@ expr_id:
 
 expr:
     LITERAL          { Literal($1)            }
-  | FLIT	         { Fliteral($1)           }
+  | FLIT             { Fliteral($1)           }
   | BLIT             { BoolLit($1)            }
   | STRLIT           { ()                     } // TODO: add implementation
   | expr_id          { Id($1)                 }
