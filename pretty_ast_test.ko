@@ -11,4 +11,5 @@ ko int main() {
     z = x ! y; // remove node
     z = not (a and b or c); // boolean operators
     z = call(a, b, c); // function call
+    z = "hello world"; // string literal
 }

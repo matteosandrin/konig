@@ -121,9 +121,9 @@ expr:
   | ID LPAREN args_opt RPAREN { Call($1, $3)  }
   | LPAREN expr RPAREN { $2                   }
   | ID LSQUARE expr RSQUARE { Index($1, $3) } // (list indexing)
-  | LSQUARE args_opt RSQUARE { VarargLit($2) } // (list literal)
-  | NEW NODE LBRACE args_opt RBRACE { VarargLit($4) } // (node literal)
-  | NEW GRAPH LBRACE args_opt RBRACE { VarargLit($4)  } // (graph literal)
+  | LSQUARE args_opt RSQUARE { ListLit($2) } // (list literal)
+  | NEW NODE LBRACE args_opt RBRACE { NodeLit($4) } // (node literal)
+  | NEW GRAPH LBRACE args_opt RBRACE { GraphLit($4)  } // (graph literal)
 
 args_opt:
     /* nothing */ { [] }

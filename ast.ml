@@ -18,7 +18,9 @@ type expr =
   | Fliteral of string
   | BoolLit of bool
   | StrLit of string
-  | VarargLit of expr list
+  | ListLit of expr list
+  | NodeLit of expr list
+  | GraphLit of expr list
   | Id of string
   | Binop of expr * op * expr
   | Unop of uop * expr

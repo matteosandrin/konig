@@ -27,8 +27,12 @@ let rec string_of_expr = function
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
   | StrLit(l) -> l
-  | VarargLit(el) -> 
-    "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
+  | ListLit(el) -> 
+    "[" ^ String.concat ", " (List.map string_of_expr el) ^ "]"
+  | NodeLit(el) -> 
+    "new node{" ^ String.concat ", " (List.map string_of_expr el) ^ "}"
+  | GraphLit(el) -> 
+    "new graph{" ^ String.concat ", " (List.map string_of_expr el) ^ "}"
   | Id(s) -> s
   | Binop(e1, o, e2) ->
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
