@@ -2,17 +2,15 @@
 
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
           And | Or |
-          Addnode | Delnode
+          Addnode | Delnode |
           Index (* list indexing *)
 type uop = Neg | Not
 
 type typ = Int | Bool | Float | Void |
            Char | Edge | Graph |
-           list | node
+           List of typ |
+           Node of typ
 
-(* The type definitions for "list" and "node" contain other types (i.e. list<int>) *)
-type list = List * typ
-type node = Node * typ
 type bind = typ * string
 
 type expr =
