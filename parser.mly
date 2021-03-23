@@ -1,8 +1,8 @@
 /* Ocamlyacc parser for Konig */
 
-// %{
-// open Ast
-// %}
+%{
+open Ast
+%}
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE LSQUARE RSQUARE COMMA DOT PLUS MINUS TIMES DIVIDE ASSIGN
 %token ADDNODE DELNODE
