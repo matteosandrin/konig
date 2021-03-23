@@ -16,7 +16,6 @@ let string_of_op = function
   | Or -> "or"
   | Addnode -> "@"
   | Delnode -> "!"
-  | Index -> "[]"
 
 let string_of_uop = function
     Neg -> "-"
@@ -37,6 +36,8 @@ let rec string_of_expr = function
   | Assign(v, e) -> v ^ " = " ^ string_of_expr e
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
+  | Index(v, e) ->
+      v ^ "[" ^ string_of_expr e ^ "]"
   | Noexpr -> ""
 
 let rec string_of_stmt = function
@@ -66,7 +67,7 @@ let rec string_of_typ = function
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 
 let string_of_fdecl fdecl =
-  "ko" ^
+  "ko " ^
   string_of_typ fdecl.typ ^ " " ^
   fdecl.fname ^ "(" ^ String.concat ", " (List.map snd fdecl.formals) ^
   ")\n{\n" ^

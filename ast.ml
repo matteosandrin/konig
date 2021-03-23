@@ -2,8 +2,8 @@
 
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
           And | Or |
-          Addnode | Delnode |
-          Index (* list indexing *)
+          Addnode | Delnode
+
 type uop = Neg | Not
 
 type typ = Int | Bool | Float | Void |
@@ -24,6 +24,7 @@ type expr =
   | Unop of uop * expr
   | Assign of string * expr
   | Call of string * expr list
+  | Index of string * expr (* access an item in an array *)
   | Noexpr
 
 type stmt =

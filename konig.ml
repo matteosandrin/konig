@@ -10,7 +10,7 @@ let () =
     ("-c", Arg.Unit (set_action Compile),
       "Check and print the generated LLVM IR (default)");
   ] in  
-  let usage_msg = "usage: ./koni.native [-a|-s|-l|-c] [file.mc]" in
+  let usage_msg = "usage: ./koni.native [-a|-s|-l|-c] [file.ko]" in
   let channel = ref stdin in
   Arg.parse speclist (fun filename -> channel := open_in filename) usage_msg;
   

@@ -1,0 +1,14 @@
+ko int main() {
+    int x;
+    list<int> y;
+    list<node<bool>> z; // complex type
+    node<int> w;
+    x = 1; // int literal
+    z = [1, 2, 3]; // list literal
+    w = new node{1}; // node literal
+    z = z[3]; // list indexing
+    z = x @ y; // add node
+    z = x ! y; // remove node
+    z = not (a and b or c); // boolean operators
+    z = call(a, b, c); // function call
+}
