@@ -1,0 +1,5 @@
+ko void main() {
+    list<char> x;
+    x = "hello world";
+    print(x);
+}

@@ -2,6 +2,8 @@
 
 open Ast
 open Sast
+open Prettyast
+open Prettysast
 
 module StringMap = Map.Make(String)
 
@@ -38,7 +40,7 @@ let check (globals, functions) =
       fname = name; 
       formals = [(ty, "x")];
       locals = []; body = [] } map
-    in List.fold_left add_bind StringMap.empty [ ("print", Int);
+    in List.fold_left add_bind StringMap.empty [ ("print", List(Char)) ] (* NOTE: the print funtion now prints strings *)
 			                         (* ("printb", Bool); *)
 			                         (* ("printf", Float); *)
 			                         (* ("printbig", Int) ] *)
@@ -90,13 +92,28 @@ let check (globals, functions) =
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
 
+    (* let check_all_types_same exps typ =
+      List.fold_left (fun (t, e) ->
+        if t == typ
+        then true
+        else raise (Failure ("all types are not the same")))
+      true exps
+    in *)
+
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
         Literal  l -> (Int, SLiteral l)
       | Fliteral l -> (Float, SFliteral l)
       | BoolLit l  -> (Bool, SBoolLit l)
+      | StrLit l   -> (List(Char), SStrLit l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
+      (* | ListLit(exps) as ex -> match elems with (* check that all the elements in the list have the same type *)
+          (t, e)::t -> check_all_types_same exps t; (List(t), SListLit(exps))
+        | [] -> (List(Void), SListLit []) *)
+      | ListLit(exps) -> (Void, SListLit([])) (* TODO: implement this *)
+      | NodeLit(exps) -> (Void, SNodeLit([])) (* TODO: implement this *)
+      | GraphLit(exps) -> (Void, SGraphLit([])) (* TODO: implement this *)
       | Assign(var, e) as ex -> 
           let lt = type_of_identifier var
           and (rt, e') = expr e in
@@ -144,6 +161,7 @@ let check (globals, functions) =
           in 
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
+      | Index (name, ex) -> (Void, SIndex(name, (Int, SLiteral(0)))) (* TODO: implement this *)
     in
 
     let check_bool_expr e = 

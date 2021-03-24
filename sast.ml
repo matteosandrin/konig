@@ -2,14 +2,14 @@
 open Ast
 
 type sexpr = typ * sx
-type sx =
+and sx =
     SLiteral of int
   | SFliteral of string
   | SBoolLit of bool
   | SStrLit of string
   | SListLit of sexpr list
   | SNodeLit of sexpr list
-  | GraphLit of sexpr list
+  | SGraphLit of sexpr list
   | SId of string
   | SBinop of sexpr * op * sexpr
   | SUnop of uop * sexpr
