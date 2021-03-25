@@ -40,7 +40,7 @@ let check (globals, functions) =
       fname = name; 
       formals = [(ty, "x")];
       locals = []; body = [] } map
-    in List.fold_left add_bind StringMap.empty [ ("print", List(Char)) ] (* NOTE: the print funtion now prints strings *)
+    in List.fold_left add_bind StringMap.empty [ ("print", Int) ] (* NOTE: the print funtion now prints strings *)
 			                         (* ("printb", Bool); *)
 			                         (* ("printf", Float); *)
 			                         (* ("printbig", Int) ] *)
