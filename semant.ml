@@ -92,13 +92,14 @@ let check (globals, functions) =
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
 
-    (* let check_all_types_same exps typ =
-      List.fold_left (fun (t, e) ->
-        if t == typ
-        then true
-        else raise (Failure ("all types are not the same")))
-      true exps
-    in *)
+    let check_all_types_same sexps = match sexps with
+        (typ, _) :: tail ->
+          List.iter (fun (t, e) ->
+            if t <> typ
+            then raise (Failure ("all types are not the same")))
+          tail; typ
+      | [] -> Void
+    in
 
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
@@ -108,10 +109,11 @@ let check (globals, functions) =
       | StrLit l   -> (List(Char), SStrLit l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      (* | ListLit(exps) as ex -> match elems with (* check that all the elements in the list have the same type *)
-          (t, e)::t -> check_all_types_same exps t; (List(t), SListLit(exps))
-        | [] -> (List(Void), SListLit []) *)
-      | ListLit(exps) -> (Void, SListLit([])) (* TODO: implement this *)
+      | ListLit(exps) ->
+        let sexps = (List.map (fun e -> expr e) exps) in
+        (* check that all the elements in the list have the same type *)
+        (List(check_all_types_same sexps), SListLit(sexps))
+      (* | ListLit(exps) -> (Void, SListLit([])) TODO: implement this *)
       | NodeLit(exps) -> (Void, SNodeLit([])) (* TODO: implement this *)
       | GraphLit(exps) -> (Void, SGraphLit([])) (* TODO: implement this *)
       | Assign(var, e) as ex -> 
