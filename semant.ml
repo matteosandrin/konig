@@ -92,11 +92,12 @@ let check (globals, functions) =
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
 
-    let check_all_types_same sexps = match sexps with
+    (* check that all the expressions in the list have the same type as the first one *)
+    let check_all_types_same sexps err = match sexps with
         (typ, _) :: tail ->
           List.iter (fun (t, e) ->
             if t <> typ
-            then raise (Failure ("all types are not the same")))
+            then raise (Failure (err)))
           tail; typ
       | [] -> Void
     in
@@ -109,11 +110,10 @@ let check (globals, functions) =
       | StrLit l   -> (List(Char), SStrLit l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      | ListLit(exps) ->
+      | ListLit(exps) as ex ->
         let sexps = (List.map (fun e -> expr e) exps) in
-        (* check that all the elements in the list have the same type *)
-        (List(check_all_types_same sexps), SListLit(sexps))
-      (* | ListLit(exps) -> (Void, SListLit([])) TODO: implement this *)
+        let err = "expressions must all have the same type in " ^ string_of_expr ex in
+        (List(check_all_types_same sexps err), SListLit(sexps))
       | NodeLit(exps) -> (Void, SNodeLit([])) (* TODO: implement this *)
       | GraphLit(exps) -> (Void, SGraphLit([])) (* TODO: implement this *)
       | Assign(var, e) as ex -> 
