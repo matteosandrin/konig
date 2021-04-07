@@ -6,7 +6,7 @@ open Ast
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE LSQUARE RSQUARE COMMA DOT PLUS MINUS TIMES DIVIDE ASSIGN
 %token ADDNODE DELNODE
-%token NOT EQ NEQ LT LEQ GT GEQ AND OR
+%token NOT EQ NEQ LT LEQ GT GEQ AND OR DOT
 %token KO NEW RETURN IF ELSE FOR WHILE INT BOOL FLOAT CHAR LIST NODE EDGE GRAPH VOID
 %token <int> LITERAL
 %token <bool> BLIT
@@ -22,6 +22,7 @@ open Ast
 %right ASSIGN
 %left OR
 %left AND
+%left DOT
 %left EQ NEQ
 %left LT GT LEQ GEQ
 %left ADDNODE DELNODE
@@ -113,6 +114,7 @@ expr:
   | expr GEQ    expr { Binop($1, Geq,   $3)   }
   | expr AND    expr { Binop($1, And,   $3)   }
   | expr OR     expr { Binop($1, Or,    $3)   } 
+  | expr DOT    expr  { Binop($1, Access, $3)  } // (Dot notation)
   | expr ADDNODE expr { Binop($1, Addnode, $3) } // (add node)
   | expr DELNODE expr { Binop($1, Delnode, $3) } // (delete node)
   | MINUS expr %prec NOT { Unop(Neg, $2)      }
