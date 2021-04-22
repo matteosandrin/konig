@@ -3,14 +3,24 @@
 #include <string.h>
 #include <stdbool.h>
 
+// Type definitions
+
 typedef struct Array {
     int length;
     void** start;
 } array;
 
+typedef struct Node {
+    void* data;
+} node;
+
+// Function signatures
+
 array* init_array();
 int append_array(array* a, void* elem);
 void* get_array(array* a, int index);
+
+node* init_node(void* data);
 
 array* init_array() {
     array* arr = (array *) malloc(sizeof(array));
@@ -18,6 +28,8 @@ array* init_array() {
     arr->start = NULL;
     return arr;
 }
+
+// Function bodies
 
 int append_array(array* a, void* elem) {
     int new_len = a->length + 1;
@@ -50,4 +62,11 @@ void* get_array(array* a, int index) {
         exit(1);
     }
     return (a->start) + index;
+}
+
+node* init_node(void* data) {
+    node* n = (node *) malloc(sizeof(node));
+    n->data = data;
+    // printf("node initialized successfully!");
+    return n;
 }
