@@ -28,6 +28,9 @@ let translate (globals, functions) =
   and node_t     = L.pointer_type (match L.type_by_name llm "struct.Node" with
       None -> raise (Failure "the node type is not defined.")
     | Some x -> x)
+  and graph_t    = L.pointer_type (match L.type_by_name llm "struct.Graph" with
+      None -> raise (Failure "the graph type is not defined.")
+    | Some x -> x)
   and void_ptr_t = L.pointer_type (L.i8_type context)
   in
 
@@ -39,9 +42,9 @@ let translate (globals, functions) =
     | A.Void  -> void_t
     | A.Char  -> i8_t
     | A.Edge  -> void_t (* TODO: implement this *)
-    | A.Graph -> void_t (* TODO: implement this *)
     | A.List typ  -> arr_t
     | A.Node typ  -> node_t
+    | A.Graph -> graph_t
   in
 
   (* Create a map of global variables after creating each *)
@@ -78,6 +81,12 @@ let translate (globals, functions) =
       L.function_type node_t [| void_ptr_t |] in
   let init_node_f = 
       L.declare_function "init_node" init_node_t the_module in
+
+  (* graph functions *)
+  let init_graph_t = 
+      L.function_type graph_t [||] in
+  let init_graph_f =
+      L.declare_function "init_graph" init_graph_t the_module in
 
   (* Define each function (arguments and return type) so we can 
      call it even before we've created its body *)
@@ -155,6 +164,7 @@ let translate (globals, functions) =
         in
         let vdata = L.build_bitcast data void_ptr_t "vdata" builder in
         (L.build_call init_node_f [| vdata |] "init_node" builder)
+      | SGraphLit exps -> L.build_call init_graph_f [||] "init_node" builder
       | SAssign (s, e) -> let e' = expr builder e in
                           ignore(L.build_store e' (lookup s) builder); e'
       | SIndex (s, e) -> 

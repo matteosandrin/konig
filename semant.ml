@@ -121,7 +121,11 @@ let check (globals, functions) =
         in 
         let typ = (fst (List.hd sexps))
         in (Node(typ), SNodeLit(sexps))
-      | GraphLit(exps) -> (Void, SGraphLit([])) (* TODO: implement this *)
+      | GraphLit(exps) -> 
+        let sexps = match (List.length exps) with
+            0 -> (List.map (fun e -> expr e) exps)
+          | _ -> raise ( Failure ("illegal number of arguments for new graph{}. Must have exactly zero arguments"))
+        in (Graph, SGraphLit(sexps))
       | Assign(var, e) as ex -> 
           let lt = type_of_identifier var
           and (rt, e') = expr e in
