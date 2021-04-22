@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdbool.h>
 
+#define NODE_ID_LEN 32
+
 // Type definitions
 
 typedef struct Array {
@@ -11,6 +13,7 @@ typedef struct Array {
 } array;
 
 typedef struct Node {
+    char* id;
     void* data;
 } node;
 
@@ -28,14 +31,16 @@ void* get_array(array* a, int index);
 node* init_node(void* data);
 graph* init_graph();
 
+void random_id(char *dest, int length);
+
+// Function bodies
+
 array* init_array() {
     array* arr = (array *) malloc(sizeof(array));
     arr->length = 0;
     arr->start = NULL;
     return arr;
 }
-
-// Function bodies
 
 int append_array(array* a, void* elem) {
     int new_len = a->length + 1;
@@ -71,9 +76,13 @@ void* get_array(array* a, int index) {
 }
 
 node* init_node(void* data) {
-    node* n = (node *) malloc(sizeof(node));
+    node* n =  (node *) malloc(sizeof(node));
+    char* id = (char *) malloc(sizeof(char) * (NODE_ID_LEN + 1));
+    random_id(id, NODE_ID_LEN);
+    n->id = id;
     n->data = data;
-    // printf("node initialized successfully!");
+    // printf("node initialized successfully!\n");
+    // printf("node id: %s\n", n->id);
     return n;
 }
 
@@ -82,4 +91,20 @@ graph* init_graph() {
     g->nodes = init_array();
     g->edges = init_array();
     return g;
+}
+
+// Helper functions
+
+void random_id(char *dest, int length) {
+    char charset[] = "0123456789"
+                     "abcdefghijklmnopqrstuvwxyz"
+                     "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    while (length > 0) {
+        int index = (double) rand() / RAND_MAX * (sizeof charset - 1);
+        *dest = charset[index];
+        dest++;
+        length--;
+    }
+    *dest = '\0';
 }
