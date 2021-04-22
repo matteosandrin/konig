@@ -59,9 +59,13 @@ let translate (globals, functions) =
   let init_array_f = 
       L.declare_function "init_array" init_array_t the_module in
   let append_array_t =
-      L.function_type arr_t [| arr_t; void_ptr_t |] in
+      L.function_type i32_t [| arr_t; void_ptr_t |] in
   let append_array_f = 
       L.declare_function "append_array" append_array_t the_module in
+  let get_array_t =
+      L.function_type void_ptr_t [| arr_t; i32_t |] in
+  let get_array_f = 
+      L.declare_function "get_array" get_array_t the_module in
 
   (* Define each function (arguments and return type) so we can 
      call it even before we've created its body *)
@@ -111,7 +115,7 @@ let translate (globals, functions) =
     in
 
     (* Construct code for an expression; return its value *)
-    let rec expr builder ((_, e) : sexpr) = match e with
+    let rec expr builder ((gtyp, e) : sexpr) = match e with
 	      SLiteral i  -> L.const_int i32_t i
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
       | SFliteral l -> L.const_float_of_string float_t l
@@ -132,6 +136,13 @@ let translate (globals, functions) =
         ignore(List.map (fun e -> append e) exps'); arr
       | SAssign (s, e) -> let e' = expr builder e in
                           ignore(L.build_store e' (lookup s) builder); e'
+      | SIndex (s, e) -> 
+        let arr   = L.build_load (lookup s) s builder in
+        let t     = ltype_of_typ gtyp in
+        let idx   = expr builder e in
+        let data  = L.build_call get_array_f [| arr; idx |] "get_array" builder in
+        let vdata = L.build_bitcast data (L.pointer_type t) "vdata" builder in
+        L.build_load vdata "vdata" builder
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in

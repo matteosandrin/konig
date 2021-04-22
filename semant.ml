@@ -163,7 +163,13 @@ let check (globals, functions) =
           in 
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
-      | Index (name, ex) -> (Void, SIndex(name, (Int, SLiteral(0)))) (* TODO: implement this *)
+      | Index (name, ex) -> 
+          let (t, e) = expr ex in
+          match t with
+            Int -> match (type_of_identifier name) with
+              List(t') -> (t' , SIndex(name, (Int, e)))
+              | _ -> raise ( Failure ("illegal type. expecting an array, found " ^ string_of_typ (type_of_identifier name)))
+            | _ -> raise ( Failure ("illegal array index type. expecting Int, found " ^ string_of_typ t))
     in
 
     let check_bool_expr e = 

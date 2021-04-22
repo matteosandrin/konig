@@ -1,15 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 typedef struct Array {
     int length;
     void** start;
 } array;
 
-
 array* init_array();
-void append_array(array* a, void* elem);
+int append_array(array* a, void* elem);
+void* get_array(array* a, int index);
 
 array* init_array() {
     array* arr = (array *) malloc(sizeof(array));
@@ -18,7 +19,7 @@ array* init_array() {
     return arr;
 }
 
-void append_array(array* a, void* elem) {
+int append_array(array* a, void* elem) {
     int new_len = a->length + 1;
     void** new_arr = malloc(sizeof(void*) * new_len);
     if (a->start != NULL) {
@@ -37,5 +38,16 @@ void append_array(array* a, void* elem) {
     //     printf("\telem[%d]: %d\n", i, *(int32_t*)((a->start) + i) );
     // }
     // printf("\n");
-    return;
+    return 0;
+}
+
+void* get_array(array* a, int index) {
+    // printf("get_array\n");
+    // printf("get_idx: %d %d\n", index, (a->length)-1);
+    
+    if (index > (a->length)-1) {
+        fprintf(stderr, "ERROR: array index out of bounds: %d\n", index);
+        exit(1);
+    }
+    return (a->start) + index;
 }
