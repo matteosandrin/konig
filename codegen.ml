@@ -9,6 +9,8 @@ module StringMap = Map.Make(String)
 
 let translate (globals, functions) =
   let context = L.global_context () in
+  let llmem = L.MemoryBuffer.of_file "konig.bc" in
+  let llm = Llvm_bitreader.parse_bitcode context llmem in
   
   (* Create the LLVM compilation module into which
      we will generate code *)
@@ -19,10 +21,15 @@ let translate (globals, functions) =
   and i8_t       = L.i8_type     context
   and i1_t       = L.i1_type     context
   and float_t    = L.double_type context
-  and void_t     = L.void_type   context in
+  and void_t     = L.void_type   context 
+  and arr_t      = L.pointer_type (match L.type_by_name llm "struct.Array" with
+      None -> raise (Failure "the array type isn't defined.")
+    | Some x -> x)
+  and void_ptr_t = L.pointer_type (L.i8_type context)
+  in
 
   (* Return the LLVM type for a MicroC type *)
-  let ltype_of_typ = function
+  let rec ltype_of_typ = function
       A.Int   -> i32_t
     | A.Bool  -> i1_t
     | A.Float -> float_t
@@ -30,7 +37,7 @@ let translate (globals, functions) =
     | A.Char  -> i8_t
     | A.Edge  -> void_t (* TODO: implement this *)
     | A.Graph -> void_t (* TODO: implement this *)
-    | A.List _  -> L.pointer_type (L.i8_type context) (* NOTE: this needs to be changed later *)
+    | A.List typ  -> arr_t
     | A.Node _  -> void_t (* TODO: implement this *)
   in
 
@@ -47,6 +54,18 @@ let translate (globals, functions) =
       L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func : L.llvalue = 
       L.declare_function "printf" printf_t the_module in
+  let init_array_t =
+      L.function_type arr_t [||] in
+  let init_array_f = 
+      L.declare_function "init_array" init_array_t the_module in
+  let append_array_t =
+      L.function_type i32_t [| arr_t; void_ptr_t |] in
+  let append_array_f = 
+      L.declare_function "append_array" append_array_t the_module in
+  let get_array_t =
+      L.function_type void_ptr_t [| arr_t; i32_t |] in
+  let get_array_f = 
+      L.declare_function "get_array" get_array_t the_module in
 
   (* Define each function (arguments and return type) so we can 
      call it even before we've created its body *)
@@ -96,14 +115,34 @@ let translate (globals, functions) =
     in
 
     (* Construct code for an expression; return its value *)
-    let rec expr builder ((_, e) : sexpr) = match e with
-	SLiteral i  -> L.const_int i32_t i
+    let rec expr builder ((gtyp, e) : sexpr) = match e with
+	      SLiteral i  -> L.const_int i32_t i
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
       | SFliteral l -> L.const_float_of_string float_t l
       | SNoexpr     -> L.const_int i32_t 0
       | SId s       -> L.build_load (lookup s) s builder
+      | SListLit exps ->
+        let arr = L.build_call init_array_f [||] "init_array" builder in
+        let exps' = List.map (fun e -> expr builder e) exps in
+        let typ = (fst (List.hd exps)) in
+        let append e_val =
+          let data = 
+            let d = L.build_malloc (ltype_of_typ typ) "data" builder in
+            ignore(L.build_store e_val d builder); d
+          in
+          let vdata = L.build_bitcast data void_ptr_t "vdata" builder in
+          L.build_call append_array_f [| arr; vdata |] "append_array" builder
+        in
+        ignore(List.map (fun e -> append e) exps'); arr
       | SAssign (s, e) -> let e' = expr builder e in
                           ignore(L.build_store e' (lookup s) builder); e'
+      | SIndex (s, e) -> 
+        let arr   = L.build_load (lookup s) s builder in
+        let t     = ltype_of_typ gtyp in
+        let idx   = expr builder e in
+        let data  = L.build_call get_array_f [| arr; idx |] "get_array" builder in
+        let vdata = L.build_bitcast data (L.pointer_type t) "vdata" builder in
+        L.build_load vdata "vdata" builder
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in
@@ -229,4 +268,3 @@ let translate (globals, functions) =
 
   List.iter build_function_body functions;
   the_module
-

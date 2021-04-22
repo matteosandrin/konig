@@ -92,13 +92,15 @@ let check (globals, functions) =
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
 
-    (* let check_all_types_same exps typ =
-      List.fold_left (fun (t, e) ->
-        if t == typ
-        then true
-        else raise (Failure ("all types are not the same")))
-      true exps
-    in *)
+    (* check that all the expressions in the list have the same type as the first one *)
+    let check_all_types_same sexps err = match sexps with
+        (typ, _) :: tail ->
+          List.iter (fun (t, e) ->
+            if t <> typ
+            then raise (Failure (err)))
+          tail; typ
+      | [] -> Void
+    in
 
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
@@ -108,10 +110,10 @@ let check (globals, functions) =
       | StrLit l   -> (List(Char), SStrLit l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      (* | ListLit(exps) as ex -> match elems with (* check that all the elements in the list have the same type *)
-          (t, e)::t -> check_all_types_same exps t; (List(t), SListLit(exps))
-        | [] -> (List(Void), SListLit []) *)
-      | ListLit(exps) -> (Void, SListLit([])) (* TODO: implement this *)
+      | ListLit(exps) as ex ->
+        let sexps = (List.map (fun e -> expr e) exps) in
+        let err = "expressions must all have the same type in " ^ string_of_expr ex in
+        (List(check_all_types_same sexps err), SListLit(sexps))
       | NodeLit(exps) -> (Void, SNodeLit([])) (* TODO: implement this *)
       | GraphLit(exps) -> (Void, SGraphLit([])) (* TODO: implement this *)
       | Assign(var, e) as ex -> 
@@ -161,7 +163,13 @@ let check (globals, functions) =
           in 
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
-      | Index (name, ex) -> (Void, SIndex(name, (Int, SLiteral(0)))) (* TODO: implement this *)
+      | Index (name, ex) -> 
+          let (t, e) = expr ex in
+          match t with
+            Int -> match (type_of_identifier name) with
+              List(t') -> (t' , SIndex(name, (Int, e)))
+              | _ -> raise ( Failure ("illegal type. expecting an array, found " ^ string_of_typ (type_of_identifier name)))
+            | _ -> raise ( Failure ("illegal array index type. expecting Int, found " ^ string_of_typ t))
     in
 
     let check_bool_expr e = 
