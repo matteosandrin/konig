@@ -6,7 +6,9 @@ GCC=gcc
 targets := $(wildcard *.mll) $(wildcard *.mly) $(wildcard *.ml)
 OUT=k.out
 
-konig.native: $(targets)
+all: konig.native konig.o
+
+konig.native:
 	opam config exec -- \
 	ocamlbuild -use-ocamlfind konig.native -package llvm -package llvm.analysis -package llvm.bitreader
 	$(GCC) -c konig.c
@@ -15,7 +17,7 @@ konig.native: $(targets)
 compile:
 	./konig.native -c $(FILE) > temp.ll
 	$(LLC) -relocation-model=pic temp.ll > temp.s
-	$(CC) -o $(OUT) temp.s
+	$(GCC) -o $(OUT) temp.s konig.o
 	rm temp.ll temp.s
 	
 ast_test:
@@ -26,4 +28,4 @@ sast_test:
 
 clean:
 	ocamlbuild -clean
-	rm *.o *.bc
+	rm -f *.o *.bc
