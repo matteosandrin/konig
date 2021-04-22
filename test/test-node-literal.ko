@@ -1,0 +1,4 @@
+ko int main() {
+    node<float> n;
+    n = new node{12.345};
+}
