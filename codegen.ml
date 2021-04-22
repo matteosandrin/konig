@@ -9,6 +9,8 @@ module StringMap = Map.Make(String)
 
 let translate (globals, functions) =
   let context = L.global_context () in
+  let llmem = L.MemoryBuffer.of_file "konig.bc" in
+  let llm = Llvm_bitreader.parse_bitcode context llmem in
   
   (* Create the LLVM compilation module into which
      we will generate code *)
@@ -19,10 +21,14 @@ let translate (globals, functions) =
   and i8_t       = L.i8_type     context
   and i1_t       = L.i1_type     context
   and float_t    = L.double_type context
-  and void_t     = L.void_type   context in
+  and void_t     = L.void_type   context 
+  and arr_t      = L.pointer_type (match L.type_by_name llm "struct.Array" with
+      None -> raise (Failure "the array type isn't defined.")
+    | Some x -> x)
+  in
 
   (* Return the LLVM type for a MicroC type *)
-  let ltype_of_typ = function
+  let rec ltype_of_typ = function
       A.Int   -> i32_t
     | A.Bool  -> i1_t
     | A.Float -> float_t
@@ -30,7 +36,7 @@ let translate (globals, functions) =
     | A.Char  -> i8_t
     | A.Edge  -> void_t (* TODO: implement this *)
     | A.Graph -> void_t (* TODO: implement this *)
-    | A.List _  -> L.pointer_type (L.i8_type context) (* NOTE: this needs to be changed later *)
+    | A.List typ  -> arr_t
     | A.Node _  -> void_t (* TODO: implement this *)
   in
 
@@ -97,11 +103,15 @@ let translate (globals, functions) =
 
     (* Construct code for an expression; return its value *)
     let rec expr builder ((_, e) : sexpr) = match e with
-	SLiteral i  -> L.const_int i32_t i
+	      SLiteral i  -> L.const_int i32_t i
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
       | SFliteral l -> L.const_float_of_string float_t l
       | SNoexpr     -> L.const_int i32_t 0
       | SId s       -> L.build_load (lookup s) s builder
+      (* | SListLit exps ->
+        let exps' = map (fun e -> expr builder e) exps in
+        let typ = match (fst exps)
+        L.build_array_alloca *)
       | SAssign (s, e) -> let e' = expr builder e in
                           ignore(L.build_store e' (lookup s) builder); e'
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
