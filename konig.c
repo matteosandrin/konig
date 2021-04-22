@@ -14,6 +14,11 @@ typedef struct Node {
     void* data;
 } node;
 
+typedef struct Graph {
+    array* nodes;
+    array* edges;
+} graph;
+
 // Function signatures
 
 array* init_array();
@@ -21,6 +26,7 @@ int append_array(array* a, void* elem);
 void* get_array(array* a, int index);
 
 node* init_node(void* data);
+graph* init_graph();
 
 array* init_array() {
     array* arr = (array *) malloc(sizeof(array));
@@ -69,4 +75,11 @@ node* init_node(void* data) {
     n->data = data;
     // printf("node initialized successfully!");
     return n;
+}
+
+graph* init_graph() {
+    graph* g = (graph *) malloc(sizeof(graph));
+    g->nodes = init_array();
+    g->edges = init_array();
+    return g;
 }

@@ -14,16 +14,19 @@ for test_file in tests:
 
     print("[+] Running test \"{}\"...".format(test_file))
 
-    os.system("./compile.sh test/{}.ko > /dev/null".format(test_file))
-    os.system("./{}.out > test/{}.txt".format(test_file, test_file))
+    r1 = os.system("./compile.sh test/{}.ko > /dev/null".format(test_file))
+    r2 = os.system("./{}.out > test/{}.txt".format(test_file, test_file))
     res = subprocess.run(
         [
             "diff",
             "test/{}.txt".format(test_file),
             "test/{}.res".format(test_file)
-        ],stdout=subprocess.PIPE)
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE)
+    r3 = res.returncode
     
-    if len(res.stdout) == 0:
+    if len(res.stdout) == 0 and r1 == 0 and r2 == 0 and r3 == 0:
         print("[+] test \"{}\" PASSED.".format(test_file))
     else:
         print("[!] test \"{}\" FAILED. (!!!)".format(test_file))
