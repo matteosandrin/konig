@@ -23,7 +23,10 @@ let translate (globals, functions) =
   and float_t    = L.double_type context
   and void_t     = L.void_type   context 
   and arr_t      = L.pointer_type (match L.type_by_name llm "struct.Array" with
-      None -> raise (Failure "the array type isn't defined.")
+      None -> raise (Failure "the array type is not defined.")
+    | Some x -> x)
+  and node_t     = L.pointer_type (match L.type_by_name llm "struct.Node" with
+      None -> raise (Failure "the node type is not defined.")
     | Some x -> x)
   and void_ptr_t = L.pointer_type (L.i8_type context)
   in
@@ -38,7 +41,7 @@ let translate (globals, functions) =
     | A.Edge  -> void_t (* TODO: implement this *)
     | A.Graph -> void_t (* TODO: implement this *)
     | A.List typ  -> arr_t
-    | A.Node _  -> void_t (* TODO: implement this *)
+    | A.Node typ  -> node_t
   in
 
   (* Create a map of global variables after creating each *)
@@ -50,10 +53,13 @@ let translate (globals, functions) =
       in StringMap.add n (L.define_global n init the_module) m in
     List.fold_left global_var StringMap.empty globals in
 
+  (* print functions *)
   let printf_t : L.lltype = 
       L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func : L.llvalue = 
       L.declare_function "printf" printf_t the_module in
+
+  (* list functions *)
   let init_array_t =
       L.function_type arr_t [||] in
   let init_array_f = 
@@ -66,6 +72,12 @@ let translate (globals, functions) =
       L.function_type void_ptr_t [| arr_t; i32_t |] in
   let get_array_f = 
       L.declare_function "get_array" get_array_t the_module in
+
+  (* node functions *)
+  let init_node_t =
+      L.function_type node_t [| void_ptr_t |] in
+  let init_node_f = 
+      L.declare_function "init_node" init_node_t the_module in
 
   (* Define each function (arguments and return type) so we can 
      call it even before we've created its body *)
@@ -134,6 +146,15 @@ let translate (globals, functions) =
           L.build_call append_array_f [| arr; vdata |] "append_array" builder
         in
         ignore(List.map (fun e -> append e) exps'); arr
+      | SNodeLit exps ->
+        let typ = (fst (List.hd exps)) in
+        let data = 
+          let e_val = expr builder (List.hd exps) in
+          let d = L.build_malloc (ltype_of_typ typ) "data" builder in
+          ignore(L.build_store e_val d builder); d
+        in
+        let vdata = L.build_bitcast data void_ptr_t "vdata" builder in
+        (L.build_call init_node_f [| vdata |] "init_node" builder)
       | SAssign (s, e) -> let e' = expr builder e in
                           ignore(L.build_store e' (lookup s) builder); e'
       | SIndex (s, e) -> 

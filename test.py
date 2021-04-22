@@ -29,6 +29,8 @@ for test_file in tests:
         print("[!] test \"{}\" FAILED. (!!!)".format(test_file))
         failed += 1
 
+    print("")
+
 os.system("rm *.out test/*.txt")
 
 print("")

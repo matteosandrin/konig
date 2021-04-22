@@ -114,7 +114,13 @@ let check (globals, functions) =
         let sexps = (List.map (fun e -> expr e) exps) in
         let err = "expressions must all have the same type in " ^ string_of_expr ex in
         (List(check_all_types_same sexps err), SListLit(sexps))
-      | NodeLit(exps) -> (Void, SNodeLit([])) (* TODO: implement this *)
+      | NodeLit(exps) ->
+        let sexps = match (List.length exps) with
+            1 -> (List.map (fun e -> expr e) exps)
+          | _ -> raise ( Failure ("illegal number of arguments for new node{val}. Must have exactly one argument"))
+        in 
+        let typ = (fst (List.hd sexps))
+        in (Node(typ), SNodeLit(sexps))
       | GraphLit(exps) -> (Void, SGraphLit([])) (* TODO: implement this *)
       | Assign(var, e) as ex -> 
           let lt = type_of_identifier var

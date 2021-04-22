@@ -1,0 +1,6 @@
+*.native
+*.out
+*.bc
+*.o
+*.code-workspace
+_build
