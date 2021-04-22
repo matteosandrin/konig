@@ -13,12 +13,6 @@ konig.native:
 	ocamlbuild -use-ocamlfind konig.native -package llvm -package llvm.analysis -package llvm.bitreader
 	$(GCC) -c konig.c
 	clang -emit-llvm -c konig.c -o konig.bc
-
-compile:
-	./konig.native -c $(FILE) > temp.ll
-	$(LLC) -relocation-model=pic temp.ll > temp.s
-	$(GCC) -o $(OUT) temp.s konig.o
-	rm temp.ll temp.s
 	
 ast_test:
 	./_build/konig.native -a ./pretty_ast_test.ko
