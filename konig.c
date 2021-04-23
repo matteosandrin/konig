@@ -26,8 +26,8 @@ typedef struct Node {
 
 typedef struct Edge {
     char* id;
-    elem* from;
-    elem* to;
+    node* from;
+    node* to;
     bool directed;
     float weight;
 } edge;
@@ -46,12 +46,15 @@ int delete_array(array* a, elem* e);
 void* get_array(array* a, int index);
 
 node* init_node(void* data);
-edge* init_edge(elem* from, elem* to, bool directed, float weight);
+edge* init_edge(node* from, node* to, bool directed, float weight);
 graph* init_graph();
 
 elem* find_elem_by_id(char* id, graph* g);
 graph* add_node(node* n, graph* g);
 graph* del_node(node* n, graph* g);
+edge* set_edge_helper(graph* g, node* from, node* to, bool directed, float weight);
+edge* set_edge(graph* g, node* from, node* to, float weight);
+edge* set_dir_edge(graph* g, node* from, node* to, float weight);
 
 void random_id(char *dest, int length);
 int print_node(node* n);
@@ -131,7 +134,7 @@ node* init_node(void* data) {
     return n;
 }
 
-edge* init_edge(elem* from, elem* to, bool directed, float weight) {
+edge* init_edge(node* from, node* to, bool directed, float weight) {
     edge* e = (edge *) malloc(sizeof(edge));
     char* id = (char *) malloc(sizeof(char) * (ID_LEN + 1));
     random_id(id, ID_LEN);
@@ -179,6 +182,28 @@ graph* del_node(node* n, graph* g) {
     elem* e = find_elem_by_id(n->id, g);
     delete_array(g->nodes, e);
     return g;
+}
+
+edge* set_edge_helper(graph* g, node* from, node* to, bool directed, float weight) {
+    elem* elem1 = find_elem_by_id(from->id, g);
+    elem* elem2 = find_elem_by_id(to->id, g);
+
+    if (elem1 == NULL || elem2 == NULL) {
+        fprintf(stderr, "ERROR: attempting to create edge between nodes not in graph\n");
+        exit(1);
+    }
+    
+    edge* e = init_edge(from, to, directed, weight);
+    append_array(g->edges, e);
+    return e;
+}
+
+edge* set_edge(graph* g, node* from, node* to, float weight) {
+    return set_edge_helper(g, from, to, false, weight);
+}
+
+edge* set_dir_edge(graph* g, node* from, node* to, float weight) {
+    return set_edge_helper(g, from, to, true, weight);
 }
 
 // Helper functions
