@@ -25,6 +25,8 @@ let rec string_of_sexpr (t, e) =
       f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
   | SIndex(v, e) ->
     v ^ "[" ^ string_of_sexpr e ^ "]"
+  | SProp(e, s) ->
+    string_of_sexpr e ^ "." ^ s
   | SNoexpr -> ""
 				  ) ^ ")"				     
 

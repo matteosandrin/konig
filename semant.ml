@@ -48,7 +48,7 @@ let check (globals, functions) =
     ]
   in
   let built_in_decls = StringMap.add "setEdge" {
-    typ = Graph;
+    typ = Edge;
     fname = "setEdge";
     formals = [(Graph, "g"); (Node(Void), "from"); (Node(Void), "to"); (Float, "weight")];
     locals = [];
@@ -56,7 +56,7 @@ let check (globals, functions) =
   } built_in_decls
   in
   let built_in_decls = StringMap.add "setDirEdge" {
-    typ = Graph;
+    typ = Edge;
     fname = "setDirEdge";
     formals = [(Graph, "g"); (Node(Void), "from"); (Node(Void), "to"); (Float, "weight")];
     locals = [];

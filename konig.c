@@ -29,7 +29,7 @@ typedef struct Edge {
     node* from;
     node* to;
     bool directed;
-    float weight;
+    double weight;
 } edge;
 
 typedef struct Graph {
@@ -46,15 +46,20 @@ int delete_array(array* a, elem* e);
 void* get_array(array* a, int index);
 
 node* init_node(void* data);
-edge* init_edge(node* from, node* to, bool directed, float weight);
+edge* init_edge(node* from, node* to, bool directed, double weight);
 graph* init_graph();
 
 elem* find_elem_by_id(char* id, graph* g);
 graph* add_node(node* n, graph* g);
 graph* del_node(node* n, graph* g);
-edge* set_edge_helper(graph* g, node* from, node* to, bool directed, float weight);
-edge* set_edge(graph* g, node* from, node* to, float weight);
-edge* set_dir_edge(graph* g, node* from, node* to, float weight);
+
+edge* set_edge_helper(graph* g, node* from, node* to, bool directed, double weight);
+edge* set_edge(graph* g, node* from, node* to, double weight);
+edge* set_dir_edge(graph* g, node* from, node* to, double weight);
+
+void* get_node_val(node* n);
+bool get_edge_type(edge* e);
+double get_edge_weight(edge* e);
 
 void random_id(char *dest, int length);
 int print_node(node* n);
@@ -134,7 +139,7 @@ node* init_node(void* data) {
     return n;
 }
 
-edge* init_edge(node* from, node* to, bool directed, float weight) {
+edge* init_edge(node* from, node* to, bool directed, double weight) {
     edge* e = (edge *) malloc(sizeof(edge));
     char* id = (char *) malloc(sizeof(char) * (ID_LEN + 1));
     random_id(id, ID_LEN);
@@ -184,7 +189,7 @@ graph* del_node(node* n, graph* g) {
     return g;
 }
 
-edge* set_edge_helper(graph* g, node* from, node* to, bool directed, float weight) {
+edge* set_edge_helper(graph* g, node* from, node* to, bool directed, double weight) {
     elem* elem1 = find_elem_by_id(from->id, g);
     elem* elem2 = find_elem_by_id(to->id, g);
 
@@ -198,13 +203,26 @@ edge* set_edge_helper(graph* g, node* from, node* to, bool directed, float weigh
     return e;
 }
 
-edge* set_edge(graph* g, node* from, node* to, float weight) {
+edge* set_edge(graph* g, node* from, node* to, double weight) {
     return set_edge_helper(g, from, to, false, weight);
 }
 
-edge* set_dir_edge(graph* g, node* from, node* to, float weight) {
+edge* set_dir_edge(graph* g, node* from, node* to, double weight) {
     return set_edge_helper(g, from, to, true, weight);
 }
+
+void* get_node_val(node* n) {
+    return n->data;
+}
+
+bool get_edge_type(edge* e) {
+    return e->directed;
+}
+
+double get_edge_weight(edge* e) {
+    return e->weight;
+}
+
 
 // Helper functions
 
