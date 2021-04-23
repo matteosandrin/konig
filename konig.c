@@ -223,7 +223,20 @@ void random_id(char *dest, int length) {
 }
 
 int print_node(node* n) {
-    printf("node: { id=\"%s\", data=%p}\n", n->id, n->data);
+    printf("node: {\n");
+    printf("    id=\"%s\"\n", n->id);
+    printf("}\n");
+    return 0;
+}
+
+int print_edge(edge* e) {
+    printf("edge: {\n");
+    printf("    id   =\"%s\",\n",e->id);
+    printf("    from =\"%s\",\n",e->from->id);
+    printf("    to   =\"%s\",\n",e->to->id);
+    printf("    dir  = %s,\n",e->directed ? "true" : "false");
+    printf("    w    = %f,\n",e->weight);
+    printf("}\n");
     return 0;
 }
 
@@ -235,13 +248,20 @@ int print_graph(graph* g) {
     elem* curr = g->nodes->head;
     while (curr && i < node_count) {
         node* n = (node*)curr->data;
-        printf("        ");
         print_node(n);
         curr = curr->next;
     }
     printf("    }\n");
+
     printf("    %d edges: {\n", g->edges->length);
-    // TODO: print out edges
-    printf("    }\n");
+    int j = 0;
+    int edge_count = g->edges->length;
+    curr = g->edges->head;
+    while (curr && j < edge_count) {
+        edge* e = (edge*)curr->data;
+        print_edge(e);
+        curr = curr->next;
+    }
+    printf("    }\n\n");
     return 0;
 }
