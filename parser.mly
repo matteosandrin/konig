@@ -114,8 +114,7 @@ expr:
   | expr GEQ    expr { Binop($1, Geq,   $3)   }
   | expr AND    expr { Binop($1, And,   $3)   }
   | expr OR     expr { Binop($1, Or,    $3)   } 
-  | ID DOT  LITERAL  { Prop($1, $3)  } // (Dot notation)
-  | LITERAL LPAREN ID COMMA ID RPAREN DOT  LITERAL  { Method($1, $3, $5)  } // (Dot notation)
+  | expr DOT  ID     { Prop($1, $3)  } // (Dot notation)
   | expr ADDNODE expr { Binop($1, Addnode, $3) } // (add node)
   | expr DELNODE expr { Binop($1, Delnode, $3) } // (delete node)
   | MINUS expr %prec NOT { Unop(Neg, $2)      }

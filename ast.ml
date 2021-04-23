@@ -27,6 +27,7 @@ type expr =
   | Assign of string * expr
   | Call of string * expr list
   | Index of string * expr (* access an item in an array *)
+  | Prop of expr * string (* access an edge or nodes data memeber *)
   | Noexpr
 
 type stmt =

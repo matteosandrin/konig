@@ -114,6 +114,14 @@ let check (globals, functions) =
       | ListLit(exps) -> (Void, SListLit([])) (* TODO: implement this *)
       | NodeLit(exps) -> (Void, SNodeLit([])) (* TODO: implement this *)
       | GraphLit(exps) -> (Void, SGraphLit([])) (* TODO: implement this *)
+      | Prop(e, p) -> 
+        let (et, _) as e' = expr e in
+        let pt = (match (et, p) with
+          (Node t, "val") -> t
+        | (Edge , "type") -> Bool
+        | (Edge , "weight") -> Float 
+        | (_, _) -> raise (Failure ("no such property"))) in
+         (pt, SProp (e', p))
       | Assign(var, e) as ex -> 
           let lt = type_of_identifier var
           and (rt, e') = expr e in
@@ -204,3 +212,15 @@ let check (globals, functions) =
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
   in (globals, List.map check_function functions)
+
+
+  (* check dot notation *)
+
+  Prop (e, p) -> 
+  let (et, _) as e' = expr e in
+  let pt = (match (et, p) with
+      (Node t, "val") -> t
+    | (Edge , "type") -> Bool
+    | (Edge , "weight") -> Float 
+    | (_, _) -> raise (Failure ("no such property"))) in
+  (pt, SProp (e', p))
