@@ -65,6 +65,14 @@ let check (globals, functions) =
     body = [];
   } built_in_decls
   in
+  let built_in_decls = StringMap.add "getEdge" {
+    typ = Edge;
+    fname = "getEdge";
+    formals = [(Graph, "g"); (Node(Void), "from"); (Node(Void), "to")];
+    locals = [];
+    body = [];
+  } built_in_decls
+  in
 
   (* Add function name to symbol table *)
   let add_func map fd = 

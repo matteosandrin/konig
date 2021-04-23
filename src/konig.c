@@ -56,6 +56,7 @@ graph* del_node(node* n, graph* g);
 edge* set_edge_helper(graph* g, node* from, node* to, bool directed, double weight);
 edge* set_edge(graph* g, node* from, node* to, double weight);
 edge* set_dir_edge(graph* g, node* from, node* to, double weight);
+edge* get_edge(graph* g, node* from, node* to);
 
 void* get_node_val(node* n);
 bool get_edge_directed(edge* e);
@@ -210,6 +211,22 @@ edge* set_edge(graph* g, node* from, node* to, double weight) {
 edge* set_dir_edge(graph* g, node* from, node* to, double weight) {
     return set_edge_helper(g, from, to, true, weight);
 }
+
+edge* get_edge(graph* g, node* from, node* to) {
+    elem* curr = g->edges->head;
+    while (curr) {
+        edge* e = (edge*)curr->data;
+        if (
+            (strcmp(e->from->id, from->id) == 0 && strcmp(e->to->id,   to->id) == 0) ||
+            (strcmp(e->to->id,   from->id) == 0 && strcmp(e->from->id, to->id) == 0)
+        )
+            return e;
+        curr = curr->next;
+    }
+    fprintf(stderr, "ERROR: attempting to access non-existing edge\n");
+    exit(1);
+}
+
 
 void* get_node_val(node* n) {
     return n->data;

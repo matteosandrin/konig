@@ -1,6 +1,14 @@
 import os
 import subprocess
 
+print("")
+print("  ###########################################")
+print("  #                                         #")
+print("  #   Welcome to the Konig testing suite!   #")
+print("  #                                         #")
+print("  ###########################################")
+print("")
+
 TEST_DIR = "./test/"
 tests = []
 
