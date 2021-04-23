@@ -22,6 +22,7 @@ open Ast
 %right ASSIGN
 %left OR
 %left AND
+%left DOT
 %left EQ NEQ
 %left LT GT LEQ GEQ
 %left ADDNODE DELNODE
@@ -91,10 +92,6 @@ expr_opt:
     /* nothing */ { Noexpr }
   | expr          { $1 }
 
-// expr_id:
-//     ID               { Id($1)                 }
-  // | expr_id DOT expr_id   { Binop($1, Access, $3)  } // TODO: implement dot notation
-
 expr:
     LITERAL          { Literal($1)            }
   | FLIT             { Fliteral($1)           }
@@ -113,6 +110,7 @@ expr:
   | expr GEQ    expr { Binop($1, Geq,   $3)   }
   | expr AND    expr { Binop($1, And,   $3)   }
   | expr OR     expr { Binop($1, Or,    $3)   } 
+  | expr DOT    ID   { Prop($1, $3)           } // (Dot notation)
   | expr ADDNODE expr { Binop($1, Addnode, $3) } // (add node)
   | expr DELNODE expr { Binop($1, Delnode, $3) } // (delete node)
   | MINUS expr %prec NOT { Unop(Neg, $2)      }

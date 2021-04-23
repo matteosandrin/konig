@@ -42,6 +42,8 @@ let rec string_of_expr = function
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | Index(v, e) ->
       v ^ "[" ^ string_of_expr e ^ "]"
+  | Prop(e, s) ->
+      string_of_expr e ^ "." ^ s
   | Noexpr -> ""
 
 let rec string_of_stmt = function
