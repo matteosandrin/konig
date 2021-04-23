@@ -271,12 +271,12 @@ let translate (globals, functions) =
         in
         L.build_call set_edge_f [| g'; n1'; n2'; w' |] "set_edge" builder
       | SCall ("setDirEdge", [g; n1; n2; w]) ->
-          let g'  = (expr builder g)
-          and n1' = (expr builder n1)
-          and n2' = (expr builder n2)
-          and w' = (expr builder w)
-          in
-          L.build_call set_dir_edge_f [| g'; n1'; n2'; w' |] "set_dir_edge" builder
+        let g'  = (expr builder g)
+        and n1' = (expr builder n1)
+        and n2' = (expr builder n2)
+        and w' = (expr builder w)
+        in
+        L.build_call set_dir_edge_f [| g'; n1'; n2'; w' |] "set_dir_edge" builder
       | SCall (f, args) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
 	 let llargs = List.rev (List.map (expr builder) (List.rev args)) in
