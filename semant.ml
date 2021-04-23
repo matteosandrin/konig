@@ -43,8 +43,8 @@ let check (globals, functions) =
     in List.fold_left add_bind StringMap.empty [
       ("print", Int);
       ("printf", Float);
-      ("print_node", Node(Void));
-      ("print_graph", Graph);
+      ("printNode", Node(Void));
+      ("printGraph", Graph);
     ]
   in
 

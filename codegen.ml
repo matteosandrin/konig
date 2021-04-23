@@ -245,9 +245,9 @@ let translate (globals, functions) =
       | SCall ("printf", [e]) -> 
         L.build_call printf_func [| float_format_str ; (expr builder e) |]
           "printf" builder
-      | SCall ("print_node", [e]) ->
+      | SCall ("printNode", [e]) ->
         L.build_call print_node_f [| (expr builder e) |] "print_node" builder
-      | SCall ("print_graph", [e]) ->
+      | SCall ("printGraph", [e]) ->
         L.build_call print_graph_f [| (expr builder e) |] "print_graph" builder
       | SCall (f, args) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
