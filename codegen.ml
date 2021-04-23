@@ -25,6 +25,7 @@ let translate (globals, functions) =
   and arr_t      = L.pointer_type (match L.type_by_name llm "struct.Array" with
       None -> raise (Failure "the array type is not defined.")
     | Some x -> x)
+  and str_t      = L.pointer_type (L.i8_type context)
   and node_t     = L.pointer_type (match L.type_by_name llm "struct.Node" with
       None -> raise (Failure "the node type is not defined.")
     | Some x -> x)
@@ -45,6 +46,7 @@ let translate (globals, functions) =
     | A.Void  -> void_t
     | A.Char  -> i8_t
     | A.Edge  -> edge_t
+    | A.List A.Char -> str_t
     | A.List typ  -> arr_t
     | A.Node typ  -> node_t
     | A.Graph -> graph_t
@@ -169,6 +171,7 @@ let translate (globals, functions) =
 	      SLiteral i  -> L.const_int i32_t i
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
       | SFliteral l -> L.const_float_of_string float_t l
+      | SStrLit s   -> L.build_global_stringptr s "str" builder
       | SNoexpr     -> L.const_int i32_t 0
       | SId s       -> L.build_load (lookup s) s builder
       | SListLit exps ->
