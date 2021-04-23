@@ -46,9 +46,9 @@ let translate (globals, functions) =
     | A.Void  -> void_t
     | A.Char  -> i8_t
     | A.Edge  -> edge_t
-    | A.List A.Char -> str_t
-    | A.List typ  -> arr_t
-    | A.Node typ  -> node_t
+    | A.List(A.Char) -> str_t
+    | A.List(typ)  -> arr_t
+    | A.Node(typ)  -> node_t
     | A.Graph -> graph_t
   in
 
@@ -151,7 +151,8 @@ let translate (globals, functions) =
     let builder = L.builder_at_end context (L.entry_block the_function) in
 
     let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
-    and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder in
+    and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder
+    and string_format_str = L.build_global_stringptr "%s\n" "fmt" builder in
 
     (* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
@@ -291,6 +292,9 @@ let translate (globals, functions) =
           "printf" builder
       | SCall ("printf", [e]) -> 
         L.build_call printf_func [| float_format_str ; (expr builder e) |]
+          "printf" builder
+      | SCall ("printString", [e]) -> 
+        L.build_call printf_func [| string_format_str ; (expr builder e) |]
           "printf" builder
       | SCall ("printNode", [e]) ->
         L.build_call print_node_f [| (expr builder e) |] "print_node" builder

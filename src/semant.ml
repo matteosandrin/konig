@@ -44,6 +44,7 @@ let check (globals, functions) =
       ("print", Int);
       ("printb", Bool);
       ("printf", Float);
+      ("printString", List(Char));
       ("printNode", Node(Void));
       ("printGraph", Graph);
     ]

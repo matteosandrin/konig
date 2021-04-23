@@ -1,0 +1,10 @@
+ko int main() {
+    list<char> x;
+    node<list<char>> y;
+    
+
+    x = "Hello world";
+    y = new node{x};
+    printString(x);
+    printString(y.val);
+}
