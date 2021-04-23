@@ -40,10 +40,12 @@ let check (globals, functions) =
       fname = name; 
       formals = [(ty, "x")];
       locals = []; body = [] } map
-    in List.fold_left add_bind StringMap.empty [ ("print", Int) ] (* NOTE: the print funtion now prints strings *)
-			                         (* ("printb", Bool); *)
-			                         (* ("printf", Float); *)
-			                         (* ("printbig", Int) ] *)
+    in List.fold_left add_bind StringMap.empty [
+      ("print", Int);
+      ("printf", Float);
+      ("print_node", Node(Void));
+      ("print_graph", Graph);
+    ]
   in
 
   (* Add function name to symbol table *)
@@ -78,7 +80,11 @@ let check (globals, functions) =
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
     let check_assign lvaluet rvaluet err =
-       if lvaluet = rvaluet then lvaluet else raise (Failure err)
+      match (lvaluet, rvaluet) with
+        (Node(_), Node(_)) -> rvaluet
+        | _ -> if lvaluet = rvaluet
+          then lvaluet
+          else raise (Failure err)
     in   
 
     (* Build local symbol table of variables for this function *)
@@ -154,6 +160,11 @@ let check (globals, functions) =
           | Less | Leq | Greater | Geq
                      when same && (t1 = Int || t1 = Float) -> Bool
           | And | Or when same && t1 = Bool -> Bool
+          | Addnode | Delnode when t2 = Graph &&
+            match t1 with
+              Node (_) -> true
+              | _      -> false
+            -> Graph
           | _ -> raise (
 	      Failure ("illegal binary operator " ^
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
@@ -173,7 +184,7 @@ let check (globals, functions) =
           in 
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
-      | Index (name, ex) -> 
+      | Index (name, ex) ->
           let (t, e) = expr ex in
           match t with
             Int -> match (type_of_identifier name) with

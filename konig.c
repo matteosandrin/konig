@@ -18,6 +18,7 @@ typedef struct Node {
 } node;
 
 typedef struct Graph {
+    char* id;
     array* nodes;
     array* edges;
 } graph;
@@ -31,7 +32,13 @@ void* get_array(array* a, int index);
 node* init_node(void* data);
 graph* init_graph();
 
+node* find_node_by_id(char* id, graph* g);
+graph* add_node(node* n, graph* g);
+graph* del_node(node* n, graph* g);
+
 void random_id(char *dest, int length);
+int print_node(node* n);
+int print_graph(graph* g);
 
 // Function bodies
 
@@ -88,9 +95,35 @@ node* init_node(void* data) {
 
 graph* init_graph() {
     graph* g = (graph *) malloc(sizeof(graph));
+    char* id = (char *) malloc(sizeof(char) * (NODE_ID_LEN + 1));
+    random_id(id, NODE_ID_LEN);
+    g->id = id;
     g->nodes = init_array();
     g->edges = init_array();
     return g;
+}
+
+node* find_node_by_id(char* id, graph* g) {
+    for (int i = 0; i < g->nodes->length; i++) {
+        node* n = g->nodes->start[i];
+        if (strcmp(n->id, id) == 0)
+            return n;
+    }
+    return NULL;
+}
+
+graph* add_node(node* n, graph* g) {
+    if (find_node_by_id(n->id, g) != NULL) {
+        // the node is already in this graph
+        return g;
+    }
+
+    append_array(g->nodes, n);
+    return g;
+}
+
+graph* del_node(node* n, graph* g) {
+    return NULL;
 }
 
 // Helper functions
@@ -107,4 +140,25 @@ void random_id(char *dest, int length) {
         length--;
     }
     *dest = '\0';
+}
+
+int print_node(node* n) {
+    printf("node: { id=\"%s\" }\n", n->id);
+    return 0;
+}
+
+int print_graph(graph* g) {
+    printf("graph: { id=\"%s\" }\n", g->id);
+    printf("    %d nodes: {\n", g->nodes->length);
+    for (int i = 0; i < g->nodes->length; i++)
+    {
+        node* n = g->nodes->start[i];
+        printf("        ");
+        print_node(n);
+    }
+    printf("    }\n");
+    printf("    %d edges: {\n", g->edges->length);
+    // TODO: print out edges
+    printf("    }\n");
+    return 0;
 }
