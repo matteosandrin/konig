@@ -1,6 +1,6 @@
 ko int main() {
-    list<char> x;
-    node<list<char>> y;
+    string x;
+    node<string> y;
     
 
     x = "Hello world";

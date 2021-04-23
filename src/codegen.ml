@@ -44,9 +44,8 @@ let translate (globals, functions) =
     | A.Bool  -> i1_t
     | A.Float -> float_t
     | A.Void  -> void_t
-    | A.Char  -> i8_t
     | A.Edge  -> edge_t
-    | A.List(A.Char) -> str_t
+    | A.Str -> str_t
     | A.List(typ)  -> arr_t
     | A.Node(typ)  -> node_t
     | A.Graph -> graph_t

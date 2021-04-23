@@ -41,7 +41,7 @@ rule token = parse
 | "int"    { INT }
 | "bool"   { BOOL }
 | "float"  { FLOAT }
-| "char"   { CHAR }
+| "string" { STRING }
 | "list"   { LIST }
 | "node"   { NODE }
 | "edge"   { EDGE }

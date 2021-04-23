@@ -9,7 +9,7 @@ let rec string_of_sexpr (t, e) =
   | SFliteral(l) -> l
   | SBoolLit(true) -> "true"
   | SBoolLit(false) -> "false"
-  | SStrLit(l) -> l
+  | SStrLit(l) -> "\"" ^ l ^ "\""
   | SListLit(el) -> 
     "[" ^ String.concat ", " (List.map string_of_sexpr el) ^ "]"
   | SNodeLit(el) -> 

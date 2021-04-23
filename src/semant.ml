@@ -44,7 +44,7 @@ let check (globals, functions) =
       ("print", Int);
       ("printb", Bool);
       ("printf", Float);
-      ("printString", List(Char));
+      ("printString", Str);
       ("printNode", Node(Void));
       ("printGraph", Graph);
     ]
@@ -132,7 +132,7 @@ let check (globals, functions) =
         Literal  l -> (Int, SLiteral l)
       | Fliteral l -> (Float, SFliteral l)
       | BoolLit l  -> (Bool, SBoolLit l)
-      | StrLit l   -> (List(Char), SStrLit l)
+      | StrLit l   -> (Str, SStrLit l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
       | ListLit(exps) as ex ->
