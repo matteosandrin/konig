@@ -4,15 +4,16 @@ LLC=/usr/local/opt/llvm/bin/llc
 CC=cc
 GCC=gcc
 targets := $(wildcard *.mll) $(wildcard *.mly) $(wildcard *.ml)
-OUT=k.out
 
 all: konig.native konig.o
 
 konig.native:
 	opam config exec -- \
-	ocamlbuild -use-ocamlfind konig.native -package llvm -package llvm.analysis -package llvm.bitreader
-	$(GCC) -c konig.c
-	clang -emit-llvm -c konig.c -o konig.bc
+	ocamlbuild -use-ocamlfind src/konig.native \
+	-Is src/ast,src/sast -r \
+	-package llvm -package llvm.analysis -package llvm.bitreader
+	$(GCC) -c src/konig.c
+	clang -emit-llvm -c src/konig.c -o konig.bc
 	
 ast_test:
 	./_build/konig.native -a ./pretty_ast_test.ko

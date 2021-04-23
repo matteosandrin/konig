@@ -25,6 +25,6 @@ set -x
 
 ./konig.native -c $1 > "$INPUT.ll"
 $LLC -relocation-model=pic $INPUT.ll > $INPUT.s
-$GCC -c konig.c
+$GCC -c src/konig.c
 $GCC -o $INPUT.out $INPUT.s konig.o
 rm $INPUT.s $INPUT.ll
