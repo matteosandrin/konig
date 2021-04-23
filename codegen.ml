@@ -89,6 +89,15 @@ let translate (globals, functions) =
       L.function_type node_t [| void_ptr_t |] in
   let init_node_f = 
       L.declare_function "init_node" init_node_t the_module in
+  let add_node_t =
+      L.function_type graph_t [| node_t; graph_t |] in
+  let add_node_f = 
+      L.declare_function "add_node" add_node_t the_module in
+  let del_node_t =
+      L.function_type graph_t [| node_t; graph_t |] in
+  let del_node_f = 
+      L.declare_function "del_node" del_node_t the_module in
+  
 
   (* graph functions *)
   let init_graph_t = 
@@ -199,7 +208,10 @@ let translate (globals, functions) =
         | A.And | A.Or ->
             raise (Failure "internal error: semant should have rejected and/or on float")
         ) e1' e2' "tmp" builder
-      | SBinop (e1, (A.Addnode as op), e2) -> L.const_int i32_t 0
+      | SBinop (e1, A.Addnode, e2) -> 
+        let n = expr builder e1
+        and g = expr builder e2 in
+        L.build_call add_node_f [| n; g |] "add_node" builder
       | SBinop (e1, (A.Delnode as op), e2) -> L.const_int i32_t 0
       | SBinop (e1, op, e2) ->
         let e1' = expr builder e1
@@ -208,7 +220,7 @@ let translate (globals, functions) =
           A.Add     -> L.build_add
         | A.Sub     -> L.build_sub
         | A.Mult    -> L.build_mul
-              | A.Div     -> L.build_sdiv
+        | A.Div     -> L.build_sdiv
         | A.And     -> L.build_and
         | A.Or      -> L.build_or
         | A.Equal   -> L.build_icmp L.Icmp.Eq

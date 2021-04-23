@@ -81,6 +81,7 @@ let check (globals, functions) =
        the given lvalue type *)
     let check_assign lvaluet rvaluet err =
       match (lvaluet, rvaluet) with
+        (* this allows us to cast a Node<int> to Node<void>, to support print_node *)
         (Node(_), Node(_)) -> rvaluet
         | _ -> if lvaluet = rvaluet
           then lvaluet

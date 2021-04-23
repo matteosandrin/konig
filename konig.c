@@ -7,9 +7,16 @@
 
 // Type definitions
 
+typedef struct Elem {
+    void* data;
+    struct Elem* next;
+    struct Elem* prev;
+} elem;
+
 typedef struct Array {
     int length;
-    void** start;
+    elem* head;
+    elem* tail;
 } array;
 
 typedef struct Node {
@@ -26,7 +33,7 @@ typedef struct Graph {
 // Function signatures
 
 array* init_array();
-int append_array(array* a, void* elem);
+int append_array(array* a, void* e);
 void* get_array(array* a, int index);
 
 node* init_node(void* data);
@@ -45,29 +52,27 @@ int print_graph(graph* g);
 array* init_array() {
     array* arr = (array *) malloc(sizeof(array));
     arr->length = 0;
-    arr->start = NULL;
+    arr->head = NULL;
+    arr->tail = NULL;
     return arr;
 }
 
-int append_array(array* a, void* elem) {
+int append_array(array* a, void* e) {
     int new_len = a->length + 1;
-    void** new_arr = malloc(sizeof(void*) * new_len);
-    if (a->start != NULL) {
-        // make a new array, a copy of the old one
-        memcpy(new_arr, a->start, sizeof(void*) * a->length);
-        free(a->start);
-    }
-    // copy over the new element
-    memcpy(new_arr + new_len - 1, elem, sizeof(void*));
 
-    a->length = new_len;
-    a->start = new_arr;    
-    // printf("length: %d\n", a->length);
-    // for (int i = 0; i < a->length; i++)
-    // {
-    //     printf("\telem[%d]: %d\n", i, *(int32_t*)((a->start) + i) );
-    // }
-    // printf("\n");
+    elem* new_elem = (elem*) malloc(sizeof(elem));
+    new_elem->data = e;
+    new_elem->prev = a->tail;
+    new_elem->next = NULL;
+
+    if (a->length == 0) {
+        a->head = new_elem;
+    } else {
+        a->tail->next = new_elem;
+    }
+
+    a->tail = new_elem;
+    a->length++;
     return 0;
 }
 
@@ -79,7 +84,14 @@ void* get_array(array* a, int index) {
         fprintf(stderr, "ERROR: array index out of bounds: %d\n", index);
         exit(1);
     }
-    return (a->start) + index;
+
+    elem* curr = a->head;
+    while (curr && index) {
+        index--;
+        curr = curr->next;
+    }
+    
+    return curr->data;
 }
 
 node* init_node(void* data) {
@@ -89,7 +101,7 @@ node* init_node(void* data) {
     n->id = id;
     n->data = data;
     // printf("node initialized successfully!\n");
-    // printf("node id: %s\n", n->id);
+    // printf("node id: %p\n", n);
     return n;
 }
 
@@ -104,10 +116,14 @@ graph* init_graph() {
 }
 
 node* find_node_by_id(char* id, graph* g) {
-    for (int i = 0; i < g->nodes->length; i++) {
-        node* n = g->nodes->start[i];
+    int i = 0;
+    int node_count = g->nodes->length;
+    elem* curr = g->nodes->head;
+    while (curr && i < node_count) {
+        node* n = (node*)curr->data;
         if (strcmp(n->id, id) == 0)
             return n;
+        curr = curr->next;
     }
     return NULL;
 }
@@ -117,7 +133,6 @@ graph* add_node(node* n, graph* g) {
         // the node is already in this graph
         return g;
     }
-
     append_array(g->nodes, n);
     return g;
 }
@@ -143,18 +158,21 @@ void random_id(char *dest, int length) {
 }
 
 int print_node(node* n) {
-    printf("node: { id=\"%s\" }\n", n->id);
+    printf("node: { id=\"%s\", data=%p}\n", n->id, n->data);
     return 0;
 }
 
 int print_graph(graph* g) {
     printf("graph: { id=\"%s\" }\n", g->id);
     printf("    %d nodes: {\n", g->nodes->length);
-    for (int i = 0; i < g->nodes->length; i++)
-    {
-        node* n = g->nodes->start[i];
+    int i = 0;
+    int node_count = g->nodes->length;
+    elem* curr = g->nodes->head;
+    while (curr && i < node_count) {
+        node* n = (node*)curr->data;
         printf("        ");
         print_node(n);
+        curr = curr->next;
     }
     printf("    }\n");
     printf("    %d edges: {\n", g->edges->length);
