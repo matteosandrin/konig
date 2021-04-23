@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define NODE_ID_LEN 32
+#define ID_LEN 32
 
 // Type definitions
 
@@ -24,6 +24,14 @@ typedef struct Node {
     void* data;
 } node;
 
+typedef struct Edge {
+    char* id;
+    node* from;
+    node* to;
+    bool directed;
+    float weight;
+} edge;
+
 typedef struct Graph {
     char* id;
     array* nodes;
@@ -38,11 +46,15 @@ int delete_array(array* a, elem* e);
 void* get_array(array* a, int index);
 
 node* init_node(void* data);
+edge* init_edge(node* from, node* to, bool directed, float weight);
 graph* init_graph();
 
 elem* find_elem_by_id(char* id, graph* g);
 graph* add_node(node* n, graph* g);
 graph* del_node(node* n, graph* g);
+edge* set_edge_helper(graph* g, node* from, node* to, bool directed, float weight);
+edge* set_edge(graph* g, node* from, node* to, float weight);
+edge* set_dir_edge(graph* g, node* from, node* to, float weight);
 
 void random_id(char *dest, int length);
 int print_node(node* n);
@@ -113,8 +125,8 @@ void* get_array(array* a, int index) {
 
 node* init_node(void* data) {
     node* n =  (node *) malloc(sizeof(node));
-    char* id = (char *) malloc(sizeof(char) * (NODE_ID_LEN + 1));
-    random_id(id, NODE_ID_LEN);
+    char* id = (char *) malloc(sizeof(char) * (ID_LEN + 1));
+    random_id(id, ID_LEN);
     n->id = id;
     n->data = data;
     // printf("node initialized successfully!\n");
@@ -122,10 +134,22 @@ node* init_node(void* data) {
     return n;
 }
 
+edge* init_edge(node* from, node* to, bool directed, float weight) {
+    edge* e = (edge *) malloc(sizeof(edge));
+    char* id = (char *) malloc(sizeof(char) * (ID_LEN + 1));
+    random_id(id, ID_LEN);
+    e->id = id;
+    e->from = from;
+    e->to = to;
+    e->directed = directed;
+    e->weight = weight;
+    return e;
+}
+
 graph* init_graph() {
     graph* g = (graph *) malloc(sizeof(graph));
-    char* id = (char *) malloc(sizeof(char) * (NODE_ID_LEN + 1));
-    random_id(id, NODE_ID_LEN);
+    char* id = (char *) malloc(sizeof(char) * (ID_LEN + 1));
+    random_id(id, ID_LEN);
     g->id = id;
     g->nodes = init_array();
     g->edges = init_array();
@@ -160,6 +184,28 @@ graph* del_node(node* n, graph* g) {
     return g;
 }
 
+edge* set_edge_helper(graph* g, node* from, node* to, bool directed, float weight) {
+    elem* elem1 = find_elem_by_id(from->id, g);
+    elem* elem2 = find_elem_by_id(to->id, g);
+
+    if (elem1 == NULL || elem2 == NULL) {
+        fprintf(stderr, "ERROR: attempting to create edge between nodes not in graph\n");
+        exit(1);
+    }
+    
+    edge* e = init_edge(from, to, directed, weight);
+    append_array(g->edges, e);
+    return e;
+}
+
+edge* set_edge(graph* g, node* from, node* to, float weight) {
+    return set_edge_helper(g, from, to, false, weight);
+}
+
+edge* set_dir_edge(graph* g, node* from, node* to, float weight) {
+    return set_edge_helper(g, from, to, true, weight);
+}
+
 // Helper functions
 
 void random_id(char *dest, int length) {
@@ -177,7 +223,20 @@ void random_id(char *dest, int length) {
 }
 
 int print_node(node* n) {
-    printf("node: { id=\"%s\", data=%p}\n", n->id, n->data);
+    printf("node: {\n");
+    printf("    id=\"%s\"\n", n->id);
+    printf("}\n");
+    return 0;
+}
+
+int print_edge(edge* e) {
+    printf("edge: {\n");
+    printf("    id   =\"%s\",\n",e->id);
+    printf("    from =\"%s\",\n",e->from->id);
+    printf("    to   =\"%s\",\n",e->to->id);
+    printf("    dir  = %s,\n",e->directed ? "true" : "false");
+    printf("    w    = %f,\n",e->weight);
+    printf("}\n");
     return 0;
 }
 
@@ -189,13 +248,20 @@ int print_graph(graph* g) {
     elem* curr = g->nodes->head;
     while (curr && i < node_count) {
         node* n = (node*)curr->data;
-        printf("        ");
         print_node(n);
         curr = curr->next;
     }
     printf("    }\n");
+
     printf("    %d edges: {\n", g->edges->length);
-    // TODO: print out edges
-    printf("    }\n");
+    int j = 0;
+    int edge_count = g->edges->length;
+    curr = g->edges->head;
+    while (curr && j < edge_count) {
+        edge* e = (edge*)curr->data;
+        print_edge(e);
+        curr = curr->next;
+    }
+    printf("    }\n\n");
     return 0;
 }

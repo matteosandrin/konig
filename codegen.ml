@@ -28,6 +28,9 @@ let translate (globals, functions) =
   and node_t     = L.pointer_type (match L.type_by_name llm "struct.Node" with
       None -> raise (Failure "the node type is not defined.")
     | Some x -> x)
+  and edge_t     = L.pointer_type (match L.type_by_name llm "struct.Edge" with
+    None -> raise (Failure "the node type is not defined.")
+  | Some x -> x)
   and graph_t    = L.pointer_type (match L.type_by_name llm "struct.Graph" with
       None -> raise (Failure "the graph type is not defined.")
     | Some x -> x)
@@ -41,7 +44,7 @@ let translate (globals, functions) =
     | A.Float -> float_t
     | A.Void  -> void_t
     | A.Char  -> i8_t
-    | A.Edge  -> void_t (* TODO: implement this *)
+    | A.Edge  -> edge_t
     | A.List typ  -> arr_t
     | A.Node typ  -> node_t
     | A.Graph -> graph_t
@@ -97,7 +100,16 @@ let translate (globals, functions) =
       L.function_type graph_t [| node_t; graph_t |] in
   let del_node_f = 
       L.declare_function "del_node" del_node_t the_module in
-  
+
+  (* edge functions *)
+  let set_edge_t =
+      L.function_type edge_t [| graph_t; node_t; node_t; float_t |] in
+  let set_edge_f =
+      L.declare_function "set_edge" set_edge_t the_module in
+  let set_dir_edge_t =
+      L.function_type edge_t [| graph_t; node_t; node_t; float_t |] in
+  let set_dir_edge_f =
+      L.declare_function "set_dir_edge" set_dir_edge_t the_module in
 
   (* graph functions *)
   let init_graph_t = 
@@ -239,16 +251,32 @@ let translate (globals, functions) =
           A.Neg when t = A.Float -> L.build_fneg 
         | A.Neg                  -> L.build_neg
         | A.Not                  -> L.build_not) e' "tmp" builder
+      (* print functions *)
       | SCall ("print", [e]) | SCall ("printb", [e]) ->
         L.build_call printf_func [| int_format_str ; (expr builder e) |]
           "printf" builder
       | SCall ("printf", [e]) -> 
         L.build_call printf_func [| float_format_str ; (expr builder e) |]
           "printf" builder
-      | SCall ("print_node", [e]) ->
+      | SCall ("printNode", [e]) ->
         L.build_call print_node_f [| (expr builder e) |] "print_node" builder
-      | SCall ("print_graph", [e]) ->
+      | SCall ("printGraph", [e]) ->
         L.build_call print_graph_f [| (expr builder e) |] "print_graph" builder
+      (* edge functions *)
+      | SCall ("setEdge", [g; n1; n2; w]) ->
+        let g'  = (expr builder g)
+        and n1' = (expr builder n1)
+        and n2' = (expr builder n2)
+        and w' = (expr builder w)
+        in
+        L.build_call set_edge_f [| g'; n1'; n2'; w' |] "set_edge" builder
+      | SCall ("setDirEdge", [g; n1; n2; w]) ->
+        let g'  = (expr builder g)
+        and n1' = (expr builder n1)
+        and n2' = (expr builder n2)
+        and w' = (expr builder w)
+        in
+        L.build_call set_dir_edge_f [| g'; n1'; n2'; w' |] "set_dir_edge" builder
       | SCall (f, args) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
 	 let llargs = List.rev (List.map (expr builder) (List.rev args)) in

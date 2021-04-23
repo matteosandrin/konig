@@ -43,9 +43,25 @@ let check (globals, functions) =
     in List.fold_left add_bind StringMap.empty [
       ("print", Int);
       ("printf", Float);
-      ("print_node", Node(Void));
-      ("print_graph", Graph);
+      ("printNode", Node(Void));
+      ("printGraph", Graph);
     ]
+  in
+  let built_in_decls = StringMap.add "setEdge" {
+    typ = Graph;
+    fname = "setEdge";
+    formals = [(Graph, "g"); (Node(Void), "from"); (Node(Void), "to"); (Float, "weight")];
+    locals = [];
+    body = [];
+  } built_in_decls
+  in
+  let built_in_decls = StringMap.add "setDirEdge" {
+    typ = Graph;
+    fname = "setDirEdge";
+    formals = [(Graph, "g"); (Node(Void), "from"); (Node(Void), "to"); (Float, "weight")];
+    locals = [];
+    body = [];
+  } built_in_decls
   in
 
   (* Add function name to symbol table *)
