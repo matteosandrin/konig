@@ -3,11 +3,11 @@ LLC=/usr/local/opt/llvm/bin/llc
 # Path to the C compiler
 CC=cc
 GCC=gcc
-targets := $(wildcard *.mll) $(wildcard *.mly) $(wildcard *.ml)
+targets := $(wildcard **/*.mll) $(wildcard **/*.mly) $(wildcard **/*.ml)
 
 all: konig.native konig.o
 
-konig.native:
+konig.native: $(targets)
 	opam config exec -- \
 	ocamlbuild -use-ocamlfind src/konig.native \
 	-Is src/ast,src/sast -r \
