@@ -212,7 +212,10 @@ let translate (globals, functions) =
         let n = expr builder e1
         and g = expr builder e2 in
         L.build_call add_node_f [| n; g |] "add_node" builder
-      | SBinop (e1, (A.Delnode as op), e2) -> L.const_int i32_t 0
+      | SBinop (e1, A.Delnode, e2) ->
+        let n = expr builder e1
+        and g = expr builder e2 in
+        L.build_call del_node_f [| n; g |] "del_node" builder
       | SBinop (e1, op, e2) ->
         let e1' = expr builder e1
         and e2' = expr builder e2 in

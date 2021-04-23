@@ -34,12 +34,13 @@ typedef struct Graph {
 
 array* init_array();
 int append_array(array* a, void* e);
+int delete_array(array* a, elem* e);
 void* get_array(array* a, int index);
 
 node* init_node(void* data);
 graph* init_graph();
 
-node* find_node_by_id(char* id, graph* g);
+elem* find_elem_by_id(char* id, graph* g);
 graph* add_node(node* n, graph* g);
 graph* del_node(node* n, graph* g);
 
@@ -73,6 +74,22 @@ int append_array(array* a, void* e) {
 
     a->tail = new_elem;
     a->length++;
+    return 0;
+}
+
+int delete_array(array* a, elem* e) {
+    if (a->head == NULL || e == NULL )
+        return 0;
+    if (a->head == e)
+        a->head = e->next;
+    if (e->next != NULL)
+        e->next->prev = e->prev;
+    if (e->prev != NULL)
+        e->prev->next = e->next;
+    if (a->tail == e)
+        a->tail = e->prev;
+    free(e);
+    a->length--;
     return 0;
 }
 
@@ -115,21 +132,21 @@ graph* init_graph() {
     return g;
 }
 
-node* find_node_by_id(char* id, graph* g) {
+elem* find_elem_by_id(char* id, graph* g) {
     int i = 0;
     int node_count = g->nodes->length;
     elem* curr = g->nodes->head;
     while (curr && i < node_count) {
         node* n = (node*)curr->data;
         if (strcmp(n->id, id) == 0)
-            return n;
+            return curr;
         curr = curr->next;
     }
     return NULL;
 }
 
 graph* add_node(node* n, graph* g) {
-    if (find_node_by_id(n->id, g) != NULL) {
+    if (find_elem_by_id(n->id, g) != NULL) {
         // the node is already in this graph
         return g;
     }
@@ -138,7 +155,9 @@ graph* add_node(node* n, graph* g) {
 }
 
 graph* del_node(node* n, graph* g) {
-    return NULL;
+    elem* e = find_elem_by_id(n->id, g);
+    delete_array(g->nodes, e);
+    return g;
 }
 
 // Helper functions
