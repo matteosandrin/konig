@@ -42,6 +42,7 @@ let check (globals, functions) =
       locals = []; body = [] } map
     in List.fold_left add_bind StringMap.empty [
       ("print", Int);
+      ("printb", Bool);
       ("printf", Float);
       ("printNode", Node(Void));
       ("printGraph", Graph);
@@ -159,7 +160,7 @@ let check (globals, functions) =
         let (etyp, _) as e' = expr e in
         let pt = match (etyp, prop) with
             (Node t, "val") -> t
-          | (Edge , "type") -> Bool
+          | (Edge , "directed") -> Bool
           | (Edge , "weight") -> Float 
           | (_, _) -> raise (Failure ("illegal property access"))
         in

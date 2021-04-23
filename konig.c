@@ -58,7 +58,7 @@ edge* set_edge(graph* g, node* from, node* to, double weight);
 edge* set_dir_edge(graph* g, node* from, node* to, double weight);
 
 void* get_node_val(node* n);
-bool get_edge_type(edge* e);
+bool get_edge_directed(edge* e);
 double get_edge_weight(edge* e);
 
 void random_id(char *dest, int length);
@@ -215,7 +215,7 @@ void* get_node_val(node* n) {
     return n->data;
 }
 
-bool get_edge_type(edge* e) {
+bool get_edge_directed(edge* e) {
     return e->directed;
 }
 

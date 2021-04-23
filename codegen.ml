@@ -123,10 +123,10 @@ let translate (globals, functions) =
       L.function_type void_ptr_t [| node_t |] in
   let get_node_val_f = 
       L.declare_function "get_node_val" get_node_val_t the_module in
-  let get_edge_type_t =
+  let get_edge_directed_t =
       L.function_type i1_t [| edge_t |] in
-  let get_edge_type_f = 
-      L.declare_function "get_edge_type" get_edge_type_t the_module in
+  let get_edge_directed_f = 
+      L.declare_function "get_edge_directed" get_edge_directed_t the_module in
   let get_edge_weight_t =
       L.function_type float_t [| edge_t |] in
   let get_edge_weight_f = 
@@ -229,8 +229,8 @@ let translate (globals, functions) =
           (Node(_), "val") -> 
             let vdata = L.build_call get_node_val_f [| e' |] "get_node_val" builder in
             cast_and_load vdata 
-        | (Edge, "type") ->
-            L.build_call get_edge_type_f [| e' |] "get_edge_type" builder
+        | (Edge, "directed") ->
+            L.build_call get_edge_directed_f [| e' |] "get_edge_directed" builder
         | (Edge, "weight") ->
             L.build_call get_edge_weight_f [| e' |] "get_edge_weight" builder
         | _ -> raise (Failure ("ERROR: internal error, semant should have rejected")))
