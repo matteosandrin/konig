@@ -112,12 +112,27 @@ let translate (globals, functions) =
       L.function_type edge_t [| graph_t; node_t; node_t; float_t |] in
   let set_dir_edge_f =
       L.declare_function "set_dir_edge" set_dir_edge_t the_module in
+  
 
   (* graph functions *)
   let init_graph_t = 
       L.function_type graph_t [||] in
   let init_graph_f =
       L.declare_function "init_graph" init_graph_t the_module in
+
+  (* property getters *)
+  let get_node_val_t =
+      L.function_type void_ptr_t [| node_t |] in
+  let get_node_val_f = 
+      L.declare_function "get_node_val" get_node_val_t the_module in
+  let get_edge_directed_t =
+      L.function_type i1_t [| edge_t |] in
+  let get_edge_directed_f = 
+      L.declare_function "get_edge_directed" get_edge_directed_t the_module in
+  let get_edge_weight_t =
+      L.function_type float_t [| edge_t |] in
+  let get_edge_weight_f = 
+      L.declare_function "get_edge_weight" get_edge_weight_t the_module in
 
   (* Define each function (arguments and return type) so we can 
      call it even before we've created its body *)
@@ -206,6 +221,22 @@ let translate (globals, functions) =
         let data  = L.build_call get_array_f [| arr; idx |] "get_array" builder in
         let vdata = L.build_bitcast data (L.pointer_type t) "vdata" builder in
         L.build_load vdata "vdata" builder
+      | SProp (e, prop) -> 
+        let cast_and_load ptr = (
+          let typ = (L.pointer_type (ltype_of_typ gtyp)) in
+          let data = L.build_bitcast ptr typ "data" builder in
+          L.build_load data "data" builder)
+        in
+        let e' = (expr builder e) in (
+        match (fst e, prop) with
+          (Node(_), "val") -> 
+            let vdata = L.build_call get_node_val_f [| e' |] "get_node_val" builder in
+            cast_and_load vdata 
+        | (Edge, "directed") ->
+            L.build_call get_edge_directed_f [| e' |] "get_edge_directed" builder
+        | (Edge, "weight") ->
+            L.build_call get_edge_weight_f [| e' |] "get_edge_weight" builder
+        | _ -> raise (Failure ("ERROR: internal error, semant should have rejected")))
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
         let e1' = expr builder e1
         and e2' = expr builder e2 in

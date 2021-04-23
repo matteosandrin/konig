@@ -2,11 +2,14 @@ ko int main() {
 	node<int> n1;
 	node<int> n2;
 	graph g;
+	edge e;
 
 	n1 = new node{100};
 	n2 = new node{101};
 	g = new graph{};
 	n1 @ g;
 	n2 @ g;
-	setDirEdge(g, n1, n2, 0.0);
+	e = setDirEdge(g, n1, n2, 123.45);
+	printb(e.directed); // == true
+	printf(e.weight); // == 123.45
 }

@@ -42,13 +42,14 @@ let check (globals, functions) =
       locals = []; body = [] } map
     in List.fold_left add_bind StringMap.empty [
       ("print", Int);
+      ("printb", Bool);
       ("printf", Float);
       ("printNode", Node(Void));
       ("printGraph", Graph);
     ]
   in
   let built_in_decls = StringMap.add "setEdge" {
-    typ = Graph;
+    typ = Edge;
     fname = "setEdge";
     formals = [(Graph, "g"); (Node(Void), "from"); (Node(Void), "to"); (Float, "weight")];
     locals = [];
@@ -56,7 +57,7 @@ let check (globals, functions) =
   } built_in_decls
   in
   let built_in_decls = StringMap.add "setDirEdge" {
-    typ = Graph;
+    typ = Edge;
     fname = "setDirEdge";
     formals = [(Graph, "g"); (Node(Void), "from"); (Node(Void), "to"); (Float, "weight")];
     locals = [];
@@ -155,6 +156,15 @@ let check (globals, functions) =
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
           in (check_assign lt rt err, SAssign(var, (rt, e')))
+      | Prop(e, prop) -> 
+        let (etyp, _) as e' = expr e in
+        let pt = match (etyp, prop) with
+            (Node t, "val") -> t
+          | (Edge , "directed") -> Bool
+          | (Edge , "weight") -> Float 
+          | (_, _) -> raise (Failure ("illegal property access"))
+        in
+        (pt, SProp (e', prop))
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with

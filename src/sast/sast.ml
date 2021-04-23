@@ -16,6 +16,7 @@ and sx =
   | SAssign of string * sexpr
   | SCall of string * sexpr list
   | SIndex of string * sexpr (* access an item in an array *)
+  | SProp of sexpr * string (* access an edge or nodes data memeber *)
   | SNoexpr
 
 type sstmt =

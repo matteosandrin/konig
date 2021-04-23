@@ -5,8 +5,11 @@ ko int main() {
     graph g;
 
     n1 = new node{10};
-    n2 = new node{12};
-    n3 = new node{13};
+    print(n1.val);
+    n2 = new node{11};
+    print(n2.val);
+    n3 = new node{12};
+    print(n3.val);
     g = new graph{};
 
     n1 @ g;
