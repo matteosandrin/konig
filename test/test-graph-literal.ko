@@ -1,0 +1,4 @@
+ko int main() {
+    graph g;
+    g = new graph{};
+}

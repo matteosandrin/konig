@@ -1,0 +1,12 @@
+ko int main() {
+	node<int> n1;
+	node<int> n2;
+	graph g;
+
+	n1 = new node{100};
+	n2 = new node{101};
+	g = new graph{};
+	n1 @ g;
+	n2 @ g;
+	setDirEdge(g, n1, n2, 0.0);
+}

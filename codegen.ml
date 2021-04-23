@@ -9,6 +9,8 @@ module StringMap = Map.Make(String)
 
 let translate (globals, functions) =
   let context = L.global_context () in
+  let llmem = L.MemoryBuffer.of_file "konig.bc" in
+  let llm = Llvm_bitreader.parse_bitcode context llmem in
   
   (* Create the LLVM compilation module into which
      we will generate code *)
@@ -19,19 +21,33 @@ let translate (globals, functions) =
   and i8_t       = L.i8_type     context
   and i1_t       = L.i1_type     context
   and float_t    = L.double_type context
-  and void_t     = L.void_type   context in
+  and void_t     = L.void_type   context 
+  and arr_t      = L.pointer_type (match L.type_by_name llm "struct.Array" with
+      None -> raise (Failure "the array type is not defined.")
+    | Some x -> x)
+  and node_t     = L.pointer_type (match L.type_by_name llm "struct.Node" with
+      None -> raise (Failure "the node type is not defined.")
+    | Some x -> x)
+  and edge_t     = L.pointer_type (match L.type_by_name llm "struct.Edge" with
+    None -> raise (Failure "the node type is not defined.")
+  | Some x -> x)
+  and graph_t    = L.pointer_type (match L.type_by_name llm "struct.Graph" with
+      None -> raise (Failure "the graph type is not defined.")
+    | Some x -> x)
+  and void_ptr_t = L.pointer_type (L.i8_type context)
+  in
 
   (* Return the LLVM type for a MicroC type *)
-  let ltype_of_typ = function
+  let rec ltype_of_typ = function
       A.Int   -> i32_t
     | A.Bool  -> i1_t
     | A.Float -> float_t
     | A.Void  -> void_t
     | A.Char  -> i8_t
-    | A.Edge  -> void_t (* TODO: implement this *)
-    | A.Graph -> void_t (* TODO: implement this *)
-    | A.List _  -> L.pointer_type (L.i8_type context) (* NOTE: this needs to be changed later *)
-    | A.Node _  -> void_t (* TODO: implement this *)
+    | A.Edge  -> edge_t
+    | A.List typ  -> arr_t
+    | A.Node typ  -> node_t
+    | A.Graph -> graph_t
   in
 
   (* Create a map of global variables after creating each *)
@@ -43,10 +59,63 @@ let translate (globals, functions) =
       in StringMap.add n (L.define_global n init the_module) m in
     List.fold_left global_var StringMap.empty globals in
 
+  (* print functions *)
   let printf_t : L.lltype = 
       L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func : L.llvalue = 
       L.declare_function "printf" printf_t the_module in
+  let print_node_t =
+      L.function_type i32_t [| node_t |] in
+  let print_node_f =
+      L.declare_function "print_node" print_node_t the_module in
+  let print_graph_t =
+      L.function_type i32_t [| graph_t |] in
+  let print_graph_f =
+      L.declare_function "print_graph" print_graph_t the_module in
+
+  (* list functions *)
+  let init_array_t =
+      L.function_type arr_t [||] in
+  let init_array_f = 
+      L.declare_function "init_array" init_array_t the_module in
+  let append_array_t =
+      L.function_type i32_t [| arr_t; void_ptr_t |] in
+  let append_array_f = 
+      L.declare_function "append_array" append_array_t the_module in
+  let get_array_t =
+      L.function_type void_ptr_t [| arr_t; i32_t |] in
+  let get_array_f = 
+      L.declare_function "get_array" get_array_t the_module in
+
+  (* node functions *)
+  let init_node_t =
+      L.function_type node_t [| void_ptr_t |] in
+  let init_node_f = 
+      L.declare_function "init_node" init_node_t the_module in
+  let add_node_t =
+      L.function_type graph_t [| node_t; graph_t |] in
+  let add_node_f = 
+      L.declare_function "add_node" add_node_t the_module in
+  let del_node_t =
+      L.function_type graph_t [| node_t; graph_t |] in
+  let del_node_f = 
+      L.declare_function "del_node" del_node_t the_module in
+
+  (* edge functions *)
+  let set_edge_t =
+      L.function_type edge_t [| graph_t; node_t; node_t; float_t |] in
+  let set_edge_f =
+      L.declare_function "set_edge" set_edge_t the_module in
+  let set_dir_edge_t =
+      L.function_type edge_t [| graph_t; node_t; node_t; float_t |] in
+  let set_dir_edge_f =
+      L.declare_function "set_dir_edge" set_dir_edge_t the_module in
+
+  (* graph functions *)
+  let init_graph_t = 
+      L.function_type graph_t [||] in
+  let init_graph_f =
+      L.declare_function "init_graph" init_graph_t the_module in
 
   (* Define each function (arguments and return type) so we can 
      call it even before we've created its body *)
@@ -96,60 +165,118 @@ let translate (globals, functions) =
     in
 
     (* Construct code for an expression; return its value *)
-    let rec expr builder ((_, e) : sexpr) = match e with
-	SLiteral i  -> L.const_int i32_t i
+    let rec expr builder ((gtyp, e) : sexpr) = match e with
+	      SLiteral i  -> L.const_int i32_t i
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
       | SFliteral l -> L.const_float_of_string float_t l
       | SNoexpr     -> L.const_int i32_t 0
       | SId s       -> L.build_load (lookup s) s builder
+      | SListLit exps ->
+        let arr = L.build_call init_array_f [||] "init_array" builder in
+        let exps' = List.map (fun e -> expr builder e) exps in
+        let typ = (fst (List.hd exps)) in
+        let append e_val =
+          let data = 
+            let d = L.build_malloc (ltype_of_typ typ) "data" builder in
+            ignore(L.build_store e_val d builder); d
+          in
+          let vdata = L.build_bitcast data void_ptr_t "vdata" builder in
+          L.build_call append_array_f [| arr; vdata |] "append_array" builder
+        in
+        ignore(List.map (fun e -> append e) exps'); arr
+      | SNodeLit exps ->
+        let typ = (fst (List.hd exps)) in
+        let data = 
+          let e_val = expr builder (List.hd exps) in
+          let d = L.build_malloc (ltype_of_typ typ) "data" builder in
+          ignore(L.build_store e_val d builder); d
+        in
+        let vdata = L.build_bitcast data void_ptr_t "vdata" builder in
+        (L.build_call init_node_f [| vdata |] "init_node" builder)
+      | SGraphLit exps -> L.build_call init_graph_f [||] "init_node" builder
       | SAssign (s, e) -> let e' = expr builder e in
                           ignore(L.build_store e' (lookup s) builder); e'
+      | SIndex (s, e) -> 
+        let arr   = L.build_load (lookup s) s builder in
+        let t     = ltype_of_typ gtyp in
+        let idx   = expr builder e in
+        let data  = L.build_call get_array_f [| arr; idx |] "get_array" builder in
+        let vdata = L.build_bitcast data (L.pointer_type t) "vdata" builder in
+        L.build_load vdata "vdata" builder
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
-	  let e1' = expr builder e1
-	  and e2' = expr builder e2 in
-	  (match op with 
-	    A.Add     -> L.build_fadd
-	  | A.Sub     -> L.build_fsub
-	  | A.Mult    -> L.build_fmul
-	  | A.Div     -> L.build_fdiv 
-	  | A.Equal   -> L.build_fcmp L.Fcmp.Oeq
-	  | A.Neq     -> L.build_fcmp L.Fcmp.One
-	  | A.Less    -> L.build_fcmp L.Fcmp.Olt
-	  | A.Leq     -> L.build_fcmp L.Fcmp.Ole
-	  | A.Greater -> L.build_fcmp L.Fcmp.Ogt
-	  | A.Geq     -> L.build_fcmp L.Fcmp.Oge
-	  | A.And | A.Or ->
-	      raise (Failure "internal error: semant should have rejected and/or on float")
-	  ) e1' e2' "tmp" builder
+        let e1' = expr builder e1
+        and e2' = expr builder e2 in
+        (match op with 
+          A.Add     -> L.build_fadd
+        | A.Sub     -> L.build_fsub
+        | A.Mult    -> L.build_fmul
+        | A.Div     -> L.build_fdiv 
+        | A.Equal   -> L.build_fcmp L.Fcmp.Oeq
+        | A.Neq     -> L.build_fcmp L.Fcmp.One
+        | A.Less    -> L.build_fcmp L.Fcmp.Olt
+        | A.Leq     -> L.build_fcmp L.Fcmp.Ole
+        | A.Greater -> L.build_fcmp L.Fcmp.Ogt
+        | A.Geq     -> L.build_fcmp L.Fcmp.Oge
+        | A.And | A.Or ->
+            raise (Failure "internal error: semant should have rejected and/or on float")
+        ) e1' e2' "tmp" builder
+      | SBinop (e1, A.Addnode, e2) -> 
+        let n = expr builder e1
+        and g = expr builder e2 in
+        L.build_call add_node_f [| n; g |] "add_node" builder
+      | SBinop (e1, A.Delnode, e2) ->
+        let n = expr builder e1
+        and g = expr builder e2 in
+        L.build_call del_node_f [| n; g |] "del_node" builder
       | SBinop (e1, op, e2) ->
-	  let e1' = expr builder e1
-	  and e2' = expr builder e2 in
-	  (match op with
-	    A.Add     -> L.build_add
-	  | A.Sub     -> L.build_sub
-	  | A.Mult    -> L.build_mul
-          | A.Div     -> L.build_sdiv
-	  | A.And     -> L.build_and
-	  | A.Or      -> L.build_or
-	  | A.Equal   -> L.build_icmp L.Icmp.Eq
-	  | A.Neq     -> L.build_icmp L.Icmp.Ne
-	  | A.Less    -> L.build_icmp L.Icmp.Slt
-	  | A.Leq     -> L.build_icmp L.Icmp.Sle
-	  | A.Greater -> L.build_icmp L.Icmp.Sgt
-	  | A.Geq     -> L.build_icmp L.Icmp.Sge
-	  ) e1' e2' "tmp" builder
+        let e1' = expr builder e1
+        and e2' = expr builder e2 in
+        (match op with
+          A.Add     -> L.build_add
+        | A.Sub     -> L.build_sub
+        | A.Mult    -> L.build_mul
+        | A.Div     -> L.build_sdiv
+        | A.And     -> L.build_and
+        | A.Or      -> L.build_or
+        | A.Equal   -> L.build_icmp L.Icmp.Eq
+        | A.Neq     -> L.build_icmp L.Icmp.Ne
+        | A.Less    -> L.build_icmp L.Icmp.Slt
+        | A.Leq     -> L.build_icmp L.Icmp.Sle
+        | A.Greater -> L.build_icmp L.Icmp.Sgt
+        | A.Geq     -> L.build_icmp L.Icmp.Sge
+        ) e1' e2' "tmp" builder
       | SUnop(op, ((t, _) as e)) ->
-          let e' = expr builder e in
-	  (match op with
-	    A.Neg when t = A.Float -> L.build_fneg 
-	  | A.Neg                  -> L.build_neg
-          | A.Not                  -> L.build_not) e' "tmp" builder
+        let e' = expr builder e in
+        (match op with
+          A.Neg when t = A.Float -> L.build_fneg 
+        | A.Neg                  -> L.build_neg
+        | A.Not                  -> L.build_not) e' "tmp" builder
+      (* print functions *)
       | SCall ("print", [e]) | SCall ("printb", [e]) ->
-	  L.build_call printf_func [| int_format_str ; (expr builder e) |]
-	    "printf" builder
+        L.build_call printf_func [| int_format_str ; (expr builder e) |]
+          "printf" builder
       | SCall ("printf", [e]) -> 
-	  L.build_call printf_func [| float_format_str ; (expr builder e) |]
-	    "printf" builder
+        L.build_call printf_func [| float_format_str ; (expr builder e) |]
+          "printf" builder
+      | SCall ("printNode", [e]) ->
+        L.build_call print_node_f [| (expr builder e) |] "print_node" builder
+      | SCall ("printGraph", [e]) ->
+        L.build_call print_graph_f [| (expr builder e) |] "print_graph" builder
+      (* edge functions *)
+      | SCall ("setEdge", [g; n1; n2; w]) ->
+        let g'  = (expr builder g)
+        and n1' = (expr builder n1)
+        and n2' = (expr builder n2)
+        and w' = (expr builder w)
+        in
+        L.build_call set_edge_f [| g'; n1'; n2'; w' |] "set_edge" builder
+      | SCall ("setDirEdge", [g; n1; n2; w]) ->
+        let g'  = (expr builder g)
+        and n1' = (expr builder n1)
+        and n2' = (expr builder n2)
+        and w' = (expr builder w)
+        in
+        L.build_call set_dir_edge_f [| g'; n1'; n2'; w' |] "set_dir_edge" builder
       | SCall (f, args) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
 	 let llargs = List.rev (List.map (expr builder) (List.rev args)) in
@@ -229,4 +356,3 @@ let translate (globals, functions) =
 
   List.iter build_function_body functions;
   the_module
-

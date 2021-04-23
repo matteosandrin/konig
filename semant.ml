@@ -40,10 +40,28 @@ let check (globals, functions) =
       fname = name; 
       formals = [(ty, "x")];
       locals = []; body = [] } map
-    in List.fold_left add_bind StringMap.empty [ ("print", Int) ] (* NOTE: the print funtion now prints strings *)
-			                         (* ("printb", Bool); *)
-			                         (* ("printf", Float); *)
-			                         (* ("printbig", Int) ] *)
+    in List.fold_left add_bind StringMap.empty [
+      ("print", Int);
+      ("printf", Float);
+      ("printNode", Node(Void));
+      ("printGraph", Graph);
+    ]
+  in
+  let built_in_decls = StringMap.add "setEdge" {
+    typ = Graph;
+    fname = "setEdge";
+    formals = [(Graph, "g"); (Node(Void), "from"); (Node(Void), "to"); (Float, "weight")];
+    locals = [];
+    body = [];
+  } built_in_decls
+  in
+  let built_in_decls = StringMap.add "setDirEdge" {
+    typ = Graph;
+    fname = "setDirEdge";
+    formals = [(Graph, "g"); (Node(Void), "from"); (Node(Void), "to"); (Float, "weight")];
+    locals = [];
+    body = [];
+  } built_in_decls
   in
 
   (* Add function name to symbol table *)
@@ -78,7 +96,12 @@ let check (globals, functions) =
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
     let check_assign lvaluet rvaluet err =
-       if lvaluet = rvaluet then lvaluet else raise (Failure err)
+      match (lvaluet, rvaluet) with
+        (* this allows us to cast a Node<int> to Node<void>, to support print_node *)
+        (Node(_), Node(_)) -> rvaluet
+        | _ -> if lvaluet = rvaluet
+          then lvaluet
+          else raise (Failure err)
     in   
 
     (* Build local symbol table of variables for this function *)
@@ -92,13 +115,15 @@ let check (globals, functions) =
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
 
-    (* let check_all_types_same exps typ =
-      List.fold_left (fun (t, e) ->
-        if t == typ
-        then true
-        else raise (Failure ("all types are not the same")))
-      true exps
-    in *)
+    (* check that all the expressions in the list have the same type as the first one *)
+    let check_all_types_same sexps err = match sexps with
+        (typ, _) :: tail ->
+          List.iter (fun (t, e) ->
+            if t <> typ
+            then raise (Failure (err)))
+          tail; typ
+      | [] -> Void
+    in
 
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
@@ -108,26 +133,37 @@ let check (globals, functions) =
       | StrLit l   -> (List(Char), SStrLit l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
-      (* | ListLit(exps) as ex -> match elems with (* check that all the elements in the list have the same type *)
-          (t, e)::t -> check_all_types_same exps t; (List(t), SListLit(exps))
-        | [] -> (List(Void), SListLit []) *)
-      | ListLit(exps) -> (Void, SListLit([])) (* TODO: implement this *)
-      | NodeLit(exps) -> (Void, SNodeLit([])) (* TODO: implement this *)
-      | GraphLit(exps) -> (Void, SGraphLit([])) (* TODO: implement this *)
-      | Prop(e, p) -> 
-        let (et, _) as e' = expr e in
-        let pt = (match (et, p) with
-          (Node t, "val") -> t
-        | (Edge , "type") -> Bool
-        | (Edge , "weight") -> Float 
-        | (_, _) -> raise (Failure ("no such property"))) in
-         (pt, SProp (e', p))
+      | ListLit(exps) as ex ->
+        let sexps = (List.map (fun e -> expr e) exps) in
+        let err = "expressions must all have the same type in " ^ string_of_expr ex in
+        (List(check_all_types_same sexps err), SListLit(sexps))
+      | NodeLit(exps) ->
+        let sexps = match (List.length exps) with
+            1 -> (List.map (fun e -> expr e) exps)
+          | _ -> raise ( Failure ("illegal number of arguments for new node{val}. Must have exactly one argument"))
+        in 
+        let typ = (fst (List.hd sexps))
+        in (Node(typ), SNodeLit(sexps))
+      | GraphLit(exps) -> 
+        let sexps = match (List.length exps) with
+            0 -> (List.map (fun e -> expr e) exps)
+          | _ -> raise ( Failure ("illegal number of arguments for new graph{}. Must have exactly zero arguments"))
+        in (Graph, SGraphLit(sexps))
       | Assign(var, e) as ex -> 
           let lt = type_of_identifier var
           and (rt, e') = expr e in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
           in (check_assign lt rt err, SAssign(var, (rt, e')))
+      | Prop(e, p) -> 
+        let (et, _) as e' = expr e in
+        let pt = (match (et, p) with
+            (Node t, "val") -> t
+          | (Edge , "type") -> Bool
+          | (Edge , "weight") -> Float 
+          | (_, _) -> raise (Failure ("no such property")))
+        in
+        (pt, SProp (e', p))
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
@@ -150,6 +186,11 @@ let check (globals, functions) =
           | Less | Leq | Greater | Geq
                      when same && (t1 = Int || t1 = Float) -> Bool
           | And | Or when same && t1 = Bool -> Bool
+          | Addnode | Delnode when t2 = Graph &&
+            match t1 with
+              Node (_) -> true
+              | _      -> false
+            -> Graph
           | _ -> raise (
 	      Failure ("illegal binary operator " ^
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
@@ -169,7 +210,13 @@ let check (globals, functions) =
           in 
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
-      | Index (name, ex) -> (Void, SIndex(name, (Int, SLiteral(0)))) (* TODO: implement this *)
+      | Index (name, ex) ->
+          let (t, e) = expr ex in
+          match t with
+            Int -> match (type_of_identifier name) with
+              List(t') -> (t' , SIndex(name, (Int, e)))
+              | _ -> raise ( Failure ("illegal type. expecting an array, found " ^ string_of_typ (type_of_identifier name)))
+            | _ -> raise ( Failure ("illegal array index type. expecting Int, found " ^ string_of_typ t))
     in
 
     let check_bool_expr e = 
