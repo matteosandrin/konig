@@ -1,10 +1,21 @@
 ko int main() {
     string x;
     node<string> y;
+    list<string> z;
     
 
     x = "Hello world";
     y = new node{x};
     printString(x);
     printString(y.val);
+
+    z = [
+        "one",
+        "two",
+        "three"
+    ];
+
+    printString(z[0]);
+    printString(z[1]);
+    printString(z[2]);
 }
