@@ -33,7 +33,7 @@ typedef struct Graph {
 // Function signatures
 
 array* init_array();
-int append_array(array* a, void* e);
+int append_array(array* a, void* data);
 int delete_array(array* a, elem* e);
 void* get_array(array* a, int index);
 
@@ -58,11 +58,11 @@ array* init_array() {
     return arr;
 }
 
-int append_array(array* a, void* e) {
+int append_array(array* a, void* data) {
     int new_len = a->length + 1;
 
     elem* new_elem = (elem*) malloc(sizeof(elem));
-    new_elem->data = e;
+    new_elem->data = data;
     new_elem->prev = a->tail;
     new_elem->next = NULL;
 
