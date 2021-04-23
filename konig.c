@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define NODE_ID_LEN 32
+#define ID_LEN 32
 
 // Type definitions
 
@@ -24,6 +24,14 @@ typedef struct Node {
     void* data;
 } node;
 
+typedef struct Edge {
+    char* id;
+    elem* from;
+    elem* to;
+    bool directed;
+    float weight;
+} edge;
+
 typedef struct Graph {
     char* id;
     array* nodes;
@@ -38,6 +46,7 @@ int delete_array(array* a, elem* e);
 void* get_array(array* a, int index);
 
 node* init_node(void* data);
+edge* init_edge(elem* from, elem* to, bool directed, float weight);
 graph* init_graph();
 
 elem* find_elem_by_id(char* id, graph* g);
@@ -113,8 +122,8 @@ void* get_array(array* a, int index) {
 
 node* init_node(void* data) {
     node* n =  (node *) malloc(sizeof(node));
-    char* id = (char *) malloc(sizeof(char) * (NODE_ID_LEN + 1));
-    random_id(id, NODE_ID_LEN);
+    char* id = (char *) malloc(sizeof(char) * (ID_LEN + 1));
+    random_id(id, ID_LEN);
     n->id = id;
     n->data = data;
     // printf("node initialized successfully!\n");
@@ -122,10 +131,22 @@ node* init_node(void* data) {
     return n;
 }
 
+edge* init_edge(elem* from, elem* to, bool directed, float weight) {
+    edge* e = (edge *) malloc(sizeof(edge));
+    char* id = (char *) malloc(sizeof(char) * (ID_LEN + 1));
+    random_id(id, ID_LEN);
+    e->id = id;
+    e->from = from;
+    e->to = to;
+    e->directed = directed;
+    e->weight = weight;
+    return e;
+}
+
 graph* init_graph() {
     graph* g = (graph *) malloc(sizeof(graph));
-    char* id = (char *) malloc(sizeof(char) * (NODE_ID_LEN + 1));
-    random_id(id, NODE_ID_LEN);
+    char* id = (char *) malloc(sizeof(char) * (ID_LEN + 1));
+    random_id(id, ID_LEN);
     g->id = id;
     g->nodes = init_array();
     g->edges = init_array();
