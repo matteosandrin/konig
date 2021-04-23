@@ -41,7 +41,7 @@ rule token = parse
 | "int"    { INT }
 | "bool"   { BOOL }
 | "float"  { FLOAT }
-| "char"   { CHAR }
+| "string" { STRING }
 | "list"   { LIST }
 | "node"   { NODE }
 | "edge"   { EDGE }
@@ -54,7 +54,7 @@ rule token = parse
 | digits as lxm { LITERAL(int_of_string lxm) }
 | digits '.' digit* ( ['e' 'E'] ['+' '-']? digits )? as lxm { FLIT(lxm) }
 | "."     { DOT }
-| '"' [^'"']* '"' as lxm { STRLIT(lxm) }
+| '"' ([^'"']* as lxm) '"' { STRLIT(lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*     as lxm { ID(lxm) }
 | eof { EOF }
 | _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }

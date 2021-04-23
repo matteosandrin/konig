@@ -26,7 +26,7 @@ let rec string_of_expr = function
   | Fliteral(l) -> l
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
-  | StrLit(l) -> l
+  | StrLit(l) -> "\"" ^ l ^ "\""
   | ListLit(el) -> 
     "[" ^ String.concat ", " (List.map string_of_expr el) ^ "]"
   | NodeLit(el) -> 
@@ -64,7 +64,7 @@ let rec string_of_typ = function
   | Bool -> "bool"
   | Float -> "float"
   | Void -> "void"
-  | Char -> "char"
+  | Str -> "string"
   | Edge -> "edge"
   | Graph -> "graph"
   | List(t) -> "list<" ^ string_of_typ t ^ ">" 

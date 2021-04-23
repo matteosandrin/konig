@@ -7,7 +7,7 @@ open Ast
 %token SEMI LPAREN RPAREN LBRACE RBRACE LSQUARE RSQUARE COMMA DOT PLUS MINUS TIMES DIVIDE ASSIGN
 %token ADDNODE DELNODE
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
-%token KO NEW RETURN IF ELSE FOR WHILE INT BOOL FLOAT CHAR LIST NODE EDGE GRAPH VOID
+%token KO NEW RETURN IF ELSE FOR WHILE INT BOOL FLOAT STRING LIST NODE EDGE GRAPH VOID
 %token <int> LITERAL
 %token <bool> BLIT
 %token <string> ID FLIT
@@ -57,13 +57,13 @@ formal_list:
   | formal_list COMMA typ ID { ($3,$4) :: $1 }
 
 typ:
-    INT   { Int   }
-  | BOOL  { Bool  }
-  | FLOAT { Float }
-  | CHAR  { Char }
-  | EDGE  { Edge }
-  | GRAPH { Graph }
-  | VOID  { Void  }
+    INT    { Int   }
+  | BOOL   { Bool  }
+  | FLOAT  { Float }
+  | STRING { Str }
+  | EDGE   { Edge }
+  | GRAPH  { Graph }
+  | VOID   { Void  }
   | LIST LT typ GT { List($3) }
   | NODE LT typ GT { Node($3) }
 
