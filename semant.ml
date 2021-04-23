@@ -155,15 +155,15 @@ let check (globals, functions) =
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
           in (check_assign lt rt err, SAssign(var, (rt, e')))
-      | Prop(e, p) -> 
-        let (et, _) as e' = expr e in
-        let pt = (match (et, p) with
+      | Prop(e, prop) -> 
+        let (etyp, _) as e' = expr e in
+        let pt = match (etyp, prop) with
             (Node t, "val") -> t
           | (Edge , "type") -> Bool
           | (Edge , "weight") -> Float 
-          | (_, _) -> raise (Failure ("no such property")))
+          | (_, _) -> raise (Failure ("illegal property access"))
         in
-        (pt, SProp (e', p))
+        (pt, SProp (e', prop))
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
@@ -259,15 +259,3 @@ let check (globals, functions) =
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
   in (globals, List.map check_function functions)
-
-
-  (* check dot notation *)
-
-  Prop (e, p) -> 
-  let (et, _) as e' = expr e in
-  let pt = (match (et, p) with
-      (Node t, "val") -> t
-    | (Edge , "type") -> Bool
-    | (Edge , "weight") -> Float 
-    | (_, _) -> raise (Failure ("no such property"))) in
-  (pt, SProp (e', p))
