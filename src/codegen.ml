@@ -119,7 +119,10 @@ let translate (globals, functions) =
       L.function_type edge_t [| graph_t; node_t; node_t |] in
   let del_edge_f = 
       L.declare_function "del_edge" del_edge_t the_module in
-  
+  let update_edge_t =
+      L.function_type edge_t [| graph_t; node_t; node_t; float_t |] in
+  let update_edge_f = 
+      L.declare_function "update_edge" update_edge_t the_module in
 
   (* graph functions *)
   let init_graph_t = 
@@ -346,6 +349,13 @@ let translate (globals, functions) =
         and n2' = (expr builder n2)
         in
         L.build_call del_edge_f [| g'; n1'; n2' |] "del_edge" builder 
+      | SCall ("updateEdge", [g; n1; n2; w]) ->
+        let g'  = (expr builder g)
+        and n1' = (expr builder n1)
+        and n2' = (expr builder n2)
+        and w' = (expr builder w)
+        in
+        L.build_call update_edge_f [| g'; n1'; n2'; w' |] "update_edge" builder 
       | SCall (f, args) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
 	 let llargs = List.rev (List.map (expr builder) (List.rev args)) in

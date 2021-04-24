@@ -59,6 +59,7 @@ edge* set_edge(graph* g, node* from, node* to, double weight);
 edge* set_dir_edge(graph* g, node* from, node* to, double weight);
 edge* get_edge(graph* g, node* from, node* to);
 edge* del_edge(graph* g, node* from, node* to);
+edge* update_edge(graph* g, node* from, node* to, double weight);
 
 void* get_node_val(node* n);
 char* get_node_id(node* n);
@@ -249,6 +250,19 @@ edge* del_edge(graph* g, node* from, node* to) {
     }
 
     fprintf(stderr, "ERROR: attempting to delete non-existing edge\n");
+    exit(1);
+}
+
+edge* update_edge(graph* g, node* from, node* to, double weight) {
+    elem *el = find_elem_by_from_to(g, from, to);
+
+    if (el) {
+        edge *e = el->data;
+        e->weight = weight;
+        return (edge*)el->data;
+    }
+
+    fprintf(stderr, "ERROR: attempting to update non-existing edge\n");
     exit(1);
 }
 
