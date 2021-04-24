@@ -48,7 +48,7 @@ let translate (globals, functions) =
     | A.Str -> str_t
     | A.List(typ)  -> arr_t
     | A.Node(typ)  -> node_t
-    | A.Graph -> graph_t
+    | A.Graph(typ) -> graph_t
   in
 
   (* Create a map of global variables after creating each *)

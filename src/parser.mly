@@ -62,10 +62,10 @@ typ:
   | FLOAT  { Float }
   | STRING { Str }
   | EDGE   { Edge }
-  | GRAPH  { Graph }
   | VOID   { Void  }
-  | LIST LT typ GT { List($3) }
-  | NODE LT typ GT { Node($3) }
+  | LIST LT typ GT  { List($3)  }
+  | NODE LT typ GT  { Node($3)  }
+  | GRAPH LT typ GT { Graph($3) }
 
 vdecl_list:
     /* nothing */    { [] }

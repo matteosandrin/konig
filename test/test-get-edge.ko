@@ -2,7 +2,7 @@ ko int main() {
     node<int> x;
     node<int> y;
     edge e;
-    graph g;
+    graph<int> g;
 
     x = new node{100};
     y = new node{101};

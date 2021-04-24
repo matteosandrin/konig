@@ -66,7 +66,7 @@ let rec string_of_typ = function
   | Void -> "void"
   | Str -> "string"
   | Edge -> "edge"
-  | Graph -> "graph"
+  | Graph(t) -> "graph<" ^ string_of_typ t ^ ">" 
   | List(t) -> "list<" ^ string_of_typ t ^ ">" 
   | Node(t) -> "node<" ^ string_of_typ t ^ ">" 
 
