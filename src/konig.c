@@ -53,14 +53,18 @@ elem* find_elem_by_id(char* id, graph* g);
 graph* add_node(node* n, graph* g);
 graph* del_node(node* n, graph* g);
 
+elem* find_elem_by_from_to(graph* g, node* from, node* to);
 edge* set_edge_helper(graph* g, node* from, node* to, bool directed, double weight);
 edge* set_edge(graph* g, node* from, node* to, double weight);
 edge* set_dir_edge(graph* g, node* from, node* to, double weight);
 edge* get_edge(graph* g, node* from, node* to);
+edge* del_edge(graph* g, node* from, node* to);
 
 void* get_node_val(node* n);
+char* get_node_id(node* n);
 bool get_edge_directed(edge* e);
 double get_edge_weight(edge* e);
+char* get_edge_id(edge* e);
 
 void random_id(char *dest, int length);
 int print_node(node* n);
@@ -190,6 +194,20 @@ graph* del_node(node* n, graph* g) {
     return g;
 }
 
+elem* find_elem_by_from_to(graph* g, node* from, node* to) {
+    elem* curr = g->edges->head;
+    while (curr) {
+        edge* e = (edge*)curr->data;
+        if (
+            (strcmp(e->from->id, from->id) == 0 && strcmp(e->to->id,   to->id) == 0) ||
+            (strcmp(e->to->id,   from->id) == 0 && strcmp(e->from->id, to->id) == 0)
+        )
+            return curr;
+        curr = curr->next;
+    }
+    return NULL;
+}
+
 edge* set_edge_helper(graph* g, node* from, node* to, bool directed, double weight) {
     elem* elem1 = find_elem_by_id(from->id, g);
     elem* elem2 = find_elem_by_id(to->id, g);
@@ -213,23 +231,33 @@ edge* set_dir_edge(graph* g, node* from, node* to, double weight) {
 }
 
 edge* get_edge(graph* g, node* from, node* to) {
-    elem* curr = g->edges->head;
-    while (curr) {
-        edge* e = (edge*)curr->data;
-        if (
-            (strcmp(e->from->id, from->id) == 0 && strcmp(e->to->id,   to->id) == 0) ||
-            (strcmp(e->to->id,   from->id) == 0 && strcmp(e->from->id, to->id) == 0)
-        )
-            return e;
-        curr = curr->next;
-    }
+    elem *el = find_elem_by_from_to(g, from, to);
+
+    if (el)
+        return (edge*)el->data;
+
     fprintf(stderr, "ERROR: attempting to access non-existing edge\n");
     exit(1);
 }
 
+edge* del_edge(graph* g, node* from, node* to) {
+    elem *el = find_elem_by_from_to(g, from, to);
+
+    if (el) {
+        delete_array(g->edges, el);
+        return (edge*)el->data;
+    }
+
+    fprintf(stderr, "ERROR: attempting to delete non-existing edge\n");
+    exit(1);
+}
 
 void* get_node_val(node* n) {
     return n->data;
+}
+
+char* get_node_id(node* n) {
+    return n->id;
 }
 
 bool get_edge_directed(edge* e) {
@@ -238,6 +266,10 @@ bool get_edge_directed(edge* e) {
 
 double get_edge_weight(edge* e) {
     return e->weight;
+}
+
+char* get_edge_id(edge* e) {
+    return e->id;
 }
 
 

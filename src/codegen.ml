@@ -115,6 +115,10 @@ let translate (globals, functions) =
       L.function_type edge_t [| graph_t; node_t; node_t |] in
   let get_edge_f = 
       L.declare_function "get_edge" get_edge_t the_module in
+  let del_edge_t =
+      L.function_type edge_t [| graph_t; node_t; node_t |] in
+  let del_edge_f = 
+      L.declare_function "del_edge" del_edge_t the_module in
   
 
   (* graph functions *)
@@ -128,6 +132,10 @@ let translate (globals, functions) =
       L.function_type void_ptr_t [| node_t |] in
   let get_node_val_f = 
       L.declare_function "get_node_val" get_node_val_t the_module in
+  let get_node_id_t =
+      L.function_type str_t [| node_t |] in
+  let get_node_id_f = 
+      L.declare_function "get_node_id" get_node_id_t the_module in
   let get_edge_directed_t =
       L.function_type i1_t [| edge_t |] in
   let get_edge_directed_f = 
@@ -136,6 +144,10 @@ let translate (globals, functions) =
       L.function_type float_t [| edge_t |] in
   let get_edge_weight_f = 
       L.declare_function "get_edge_weight" get_edge_weight_t the_module in
+  let get_edge_id_t =
+      L.function_type str_t [| edge_t |] in
+  let get_edge_id_f = 
+      L.declare_function "get_edge_id" get_edge_id_t the_module in
 
   (* Define each function (arguments and return type) so we can 
      call it even before we've created its body *)
@@ -235,11 +247,15 @@ let translate (globals, functions) =
         match (fst e, prop) with
           (Node(_), "val") -> 
             let vdata = L.build_call get_node_val_f [| e' |] "get_node_val" builder in
-            cast_and_load vdata 
+            cast_and_load vdata
+        | (Node(_), "id") ->
+            L.build_call get_node_id_f [| e' |] "get_node_id" builder
         | (Edge, "directed") ->
             L.build_call get_edge_directed_f [| e' |] "get_edge_directed" builder
         | (Edge, "weight") ->
             L.build_call get_edge_weight_f [| e' |] "get_edge_weight" builder
+        | (Edge(_), "id") ->
+          L.build_call get_edge_id_f [| e' |] "get_edge_id" builder
         | _ -> raise (Failure ("ERROR: internal error, semant should have rejected")))
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
         let e1' = expr builder e1
@@ -324,6 +340,12 @@ let translate (globals, functions) =
         and n2' = (expr builder n2)
         in
         L.build_call get_edge_f [| g'; n1'; n2' |] "get_edge" builder 
+      | SCall ("deleteEdge", [g; n1; n2]) ->
+        let g'  = (expr builder g)
+        and n1' = (expr builder n1)
+        and n2' = (expr builder n2)
+        in
+        L.build_call del_edge_f [| g'; n1'; n2' |] "del_edge" builder 
       | SCall (f, args) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
 	 let llargs = List.rev (List.map (expr builder) (List.rev args)) in
