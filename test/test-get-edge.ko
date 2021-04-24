@@ -1,0 +1,19 @@
+ko int main() {
+    node<int> x;
+    node<int> y;
+    edge e;
+    graph g;
+
+    x = new node{100};
+    y = new node{101};
+    g = new graph{};
+
+    x @ g;
+    y @ g;
+
+    setEdge(g, x, y, 0.99);
+    e = getEdge(g, x, y);
+    printb(e.directed);
+    printf(e.weight);
+
+}

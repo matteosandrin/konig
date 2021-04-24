@@ -22,13 +22,13 @@ open Ast
 %right ASSIGN
 %left OR
 %left AND
-%left DOT
 %left EQ NEQ
 %left LT GT LEQ GEQ
 %left ADDNODE DELNODE
 %left PLUS MINUS
 %left TIMES DIVIDE
 %right NOT
+%left DOT
 
 %%
 

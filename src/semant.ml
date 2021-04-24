@@ -65,6 +65,30 @@ let check (globals, functions) =
     body = [];
   } built_in_decls
   in
+  let built_in_decls = StringMap.add "getEdge" {
+    typ = Edge;
+    fname = "getEdge";
+    formals = [(Graph, "g"); (Node(Void), "from"); (Node(Void), "to")];
+    locals = [];
+    body = [];
+  } built_in_decls
+  in
+  let built_in_decls = StringMap.add "deleteEdge" {
+    typ = Edge;
+    fname = "deleteEdge";
+    formals = [(Graph, "g"); (Node(Void), "from"); (Node(Void), "to")];
+    locals = [];
+    body = [];
+  } built_in_decls
+  in
+  let built_in_decls = StringMap.add "updateEdge" {
+    typ = Edge;
+    fname = "updateEdge";
+    formals = [(Graph, "g"); (Node(Void), "from"); (Node(Void), "to"); (Float, "weight")];
+    locals = [];
+    body = [];
+  } built_in_decls
+  in
 
   (* Add function name to symbol table *)
   let add_func map fd = 
@@ -161,8 +185,10 @@ let check (globals, functions) =
         let (etyp, _) as e' = expr e in
         let pt = match (etyp, prop) with
             (Node t, "val") -> t
-          | (Edge , "directed") -> Bool
-          | (Edge , "weight") -> Float 
+          | (Node t, "id") -> Str
+          | (Edge, "directed") -> Bool
+          | (Edge, "weight") -> Float 
+          | (Edge, "id") -> Str
           | (_, _) -> raise (Failure ("illegal property access"))
         in
         (pt, SProp (e', prop))
