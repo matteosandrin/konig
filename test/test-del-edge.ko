@@ -1,0 +1,20 @@
+ko int main() {
+    node<int> x;
+    node<int> y;
+    edge e1;
+    edge e2;
+    graph g;
+
+    x = new node{100};
+    y = new node{101};
+    g = new graph{};
+
+    x @ g;
+    y @ g;
+
+    e1 = setEdge(g, x, y, 0.99);
+    e2 = deleteEdge(g, x, y);
+    printb(e1.id == e2.id);
+    printb(e1.directed == e2.directed);
+    printb(e1.weight == e2.weight);
+}
