@@ -46,6 +46,7 @@ let check (globals, functions) =
       ("printf", Float);
       ("printString", Str);
       ("printNode", Node(Void));
+      ("printEdge", Edge);
       ("printGraph", Graph(Void));
     ]
   in
@@ -124,8 +125,12 @@ let check (globals, functions) =
     let check_assign lvaluet rvaluet err =
       match (lvaluet, rvaluet) with
         (* this allows us to cast a Node<int> to Node<void>, to support print_node *)
-          (Node(_), Node(_)) -> rvaluet
-        | (Graph(_), Graph(_)) -> rvaluet
+          (Node(_), Node(Void)) -> lvaluet
+        | (Node(Void), Node(_)) -> rvaluet
+        | (Graph(_), Graph(Void)) -> lvaluet
+        | (Graph(Void), Graph(_)) -> rvaluet
+        | (List(_), List(Void)) -> lvaluet
+        | (List(Void), List(_)) -> rvaluet
         | _ -> if lvaluet = rvaluet
           then lvaluet
           else raise (Failure err)
@@ -190,6 +195,7 @@ let check (globals, functions) =
           | (Edge, "directed") -> Bool
           | (Edge, "weight") -> Float 
           | (Edge, "id") -> Str
+          | (List t, "length") -> Int
           | (_, _) -> raise (Failure ("illegal property access"))
         in
         (pt, SProp (e', prop))
@@ -217,7 +223,7 @@ let check (globals, functions) =
           | And | Or when same && t1 = Bool -> Bool
           | Addnode | Delnode when 
             match (t1, t2) with
-                (Node(_), Graph(_)) -> true
+                (Node(subt1), Graph(subt2)) -> subt1 = subt1
               | _      -> false
             -> t1
           | _ -> raise (

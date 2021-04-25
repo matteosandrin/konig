@@ -14,5 +14,5 @@ ko int main() {
 
     n1 @ g;
     n2 @ g;
-    n1 @ g;
+    n3 @ g;
 }
