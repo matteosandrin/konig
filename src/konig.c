@@ -288,7 +288,7 @@ char* get_edge_id(edge* e) {
     return e->id;
 }
 
-char* get_graph_nodes(graph* g) {
+array* get_graph_nodes(graph* g) {
     return g->nodes;
 }
 
