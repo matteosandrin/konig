@@ -171,6 +171,10 @@ let translate (globals, functions) =
       L.function_type arr_t [| graph_t |] in
   let get_graph_nodes_f = 
       L.declare_function "get_graph_nodes" get_graph_nodes_t the_module in
+  let get_graph_edges_t =
+      L.function_type arr_t [| graph_t |] in
+  let get_graph_edges_f = 
+      L.declare_function "get_graph_edges" get_graph_edges_t the_module in
   
   (* Define each function (arguments and return type) so we can 
      call it even before we've created its body *)
@@ -293,6 +297,8 @@ let translate (globals, functions) =
           L.build_call get_array_length_f [| e' |] "get_array_length" builder
         | (A.Graph(_), "nodes") ->
           L.build_call get_graph_nodes_f [| e' |] "get_graph_nodes" builder
+        | (A.Graph(_), "edges") ->
+          L.build_call get_graph_edges_f [| e' |] "get_graph_edges" builder
         | _ -> raise (Failure ("ERROR: internal error, semant should have rejected")))
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
         let e1' = expr builder e1

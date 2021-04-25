@@ -1,0 +1,28 @@
+ko int main() {
+    graph<int> g;
+    node<int> n1;
+    node<int> n2;
+    node<int> n3;
+    list<edge> ee;
+    int i;
+
+    g = new graph{};
+    n1 = new node{0};
+    n2 = new node{1};
+    n3 = new node{2};
+
+    n1 @ g;
+    n2 @ g;
+    n3 @ g;
+
+    setEdge(g, n1, n2, 1.0);
+    setEdge(g, n1, n3, 1.0);
+    setEdge(g, n2, n3, 1.0);
+
+    ee = g.edges;
+
+    printb(ee[0].id == getEdge(g, n1, n2).id);
+    printb(ee[1].id == getEdge(g, n1, n3).id);
+    printb(ee[2].id == getEdge(g, n2, n3).id);
+    
+}

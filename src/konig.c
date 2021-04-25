@@ -70,6 +70,7 @@ bool get_edge_directed(edge* e);
 double get_edge_weight(edge* e);
 char* get_edge_id(edge* e);
 array* get_graph_nodes(graph* g);
+array* get_graph_edges(graph* g);
 
 char* random_id(int32_t length);
 int32_t print_node(node* n);
@@ -323,6 +324,10 @@ char* get_edge_id(edge* e) {
 
 array* get_graph_nodes(graph* g) {
     return g->nodes;
+}
+
+array* get_graph_edges(graph* g) {
+    return g->edges;
 }
 
 // Helper functions

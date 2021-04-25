@@ -1,0 +1,24 @@
+ko int main() {
+    graph<int> g;
+    node<int> n1;
+    node<int> n2;
+    node<int> n3;
+    list<node<int>> nn;
+    int i;
+
+    g = new graph{};
+    n1 = new node{0};
+    n2 = new node{1};
+    n3 = new node{2};
+
+    n1 @ g;
+    n2 @ g;
+    n3 @ g;
+
+    nn = g.nodes;
+
+    printb(nn[0].id == n1.id);
+    printb(nn[1].id == n2.id);
+    printb(nn[2].id == n3.id);
+    
+}
