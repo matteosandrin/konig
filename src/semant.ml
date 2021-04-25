@@ -114,6 +114,14 @@ let check (globals, functions) =
     body = [];
   } built_in_decls
   in
+  let built_in_decls = StringMap.add "viz" {
+    typ = Int;
+    fname = "viz";
+    formals = [(Graph(Void), "g"); (Str, "path")];
+    locals = [];
+    body = [];
+  } built_in_decls
+  in
 
   (* Add function name to symbol table *)
   let add_func map fd = 

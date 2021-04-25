@@ -11,6 +11,13 @@ echo ""
 LLC=/usr/local/opt/llvm/bin/llc
 GCC=gcc
 
+if command -v brew &> /dev/null
+then
+    LIBS="-L$(brew --prefix graphviz)/lib -lgvc -lcgraph -lcdt"
+else
+    LIBS=""
+fi
+
 if [ "$#" -ne 1 ]; then
     echo "ERROR: incorrect number of parameters"
     echo "Usage:"
@@ -26,5 +33,5 @@ set -x
 ./konig.native -c $1 > "$INPUT.ll"
 $LLC -relocation-model=pic $INPUT.ll > $INPUT.s
 $GCC -c src/konig.c
-$GCC -o $INPUT.out $INPUT.s konig.o
+$GCC -o $INPUT.out $LIBS $INPUT.s konig.o
 rm $INPUT.s $INPUT.ll

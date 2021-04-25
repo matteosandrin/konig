@@ -1,12 +1,33 @@
 # Konig – A Graph Programming Language
 
+## Dependencies
+
+In order to support the graph visualization functionality, Konig depends on the `graphviz` library.
+The `graphviz` library must be installed with the following command on Mac:
+
+```
+brew install graphviz
+```
+
+On Linux it can be installed with:
+
+```
+sudo apt install graphviz
+```
+
 ## Compiling
 
 How to compile the "Hello World" progam:
 
 1. Compile the Konig programming language by running `make`
-2. Compile the example program, by running `./compile.sh pretty_sast_test.ko`
-3. Execute the executable program by running `./pretty_sast_test.out`, the output is `1`
+2. Compile the example program, by running `./compile.sh demo.ko`
+3. Execute the executable program by running `./demo.out`, the output is:
+  
+    ```
+    Matteo  
+    Delilah  
+    Lord   
+    ```
 
 ## Testing
 

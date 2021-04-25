@@ -1,0 +1,32 @@
+ko int main() {
+
+    node<string> n1;
+    node<string> n2;
+    node<string> n3;
+    graph<string> g;
+    list<node<string>> nds;
+    int i;
+
+    // initialize graph
+    g = new graph{};
+    n1 = new node{"Matteo"};
+    n2 = new node{"Delilah"};
+    n3 = new node{"Lord"};
+
+    // add nodes to graph
+    n1 @ g;
+    n2 @ g;
+    n3 @ g;
+
+    // fully connected graph
+    setEdge(g, n1, n2, 1.0);
+    setEdge(g, n2, n3, 1.0);
+    setEdge(g, n3, n1, 1.0);
+
+    nds = g.nodes;
+
+    for (i = 0; i < nds.length; i = i+1) {
+        printString(nds[i].val);
+    }
+
+}
