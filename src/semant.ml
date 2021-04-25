@@ -224,6 +224,8 @@ let check (globals, functions) =
           | (Edge, "weight") -> Float 
           | (Edge, "id") -> Str
           | (List t, "length") -> Int
+          | (Graph t, "nodes") -> List(Node(t))
+          | (Graph t, "edges") -> List(Edge)
           | (_, _) -> raise (Failure ("illegal property access"))
         in
         (pt, SProp (e', prop))
