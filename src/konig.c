@@ -44,6 +44,7 @@ array* init_array();
 int32_t append_array(array* a, void* data);
 int32_t delete_array(array* a, elem* e);
 void* get_array(array* a, int32_t index);
+int32_t pop_array(array *a, int32_t index);
 
 node* init_node(void* data);
 edge* init_edge(node* from, node* to, bool directed, double weight);
@@ -132,11 +133,27 @@ void* get_array(array* a, int32_t index) {
         index--;
         curr = curr->next;
     }
-
-    node* n = (node*)(curr->data);
     
     return curr->data;
 }
+
+int32_t pop_array(array *a, int32_t index) {
+    if (index > (a->length)-1) {
+        fprintf(stderr, "ERROR: array index out of bounds: %d\n", index);
+        exit(1);
+    }
+
+    elem* curr = a->head;
+    while (curr && index) {
+        index--;
+        curr = curr->next;
+    }
+
+    delete_array(a, curr);
+    
+    return 0;
+}
+
 
 node* init_node(void* data) {
     node* n =  (node *) malloc(sizeof(node));

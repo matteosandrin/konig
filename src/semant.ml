@@ -90,6 +90,22 @@ let check (globals, functions) =
     body = [];
   } built_in_decls
   in
+  let built_in_decls = StringMap.add "append" {
+    typ = Int;
+    fname = "append";
+    formals = [(List(Void), "array"); (Void, "data")];
+    locals = [];
+    body = [];
+  } built_in_decls
+  in
+  let built_in_decls = StringMap.add "pop" {
+    typ = Int;
+    fname = "pop";
+    formals = [(List(Void), "array"); (Int, "index")];
+    locals = [];
+    body = [];
+  } built_in_decls
+  in
 
   (* Add function name to symbol table *)
   let add_func map fd = 
@@ -125,7 +141,9 @@ let check (globals, functions) =
     let check_assign lvaluet rvaluet err =
       match (lvaluet, rvaluet) with
         (* this allows us to cast a Node<int> to Node<void>, to support print_node *)
-          (Node(_), Node(Void)) -> lvaluet
+          (_, Void) -> lvaluet
+        | (Void, _) -> rvaluet
+        | (Node(_), Node(Void)) -> lvaluet
         | (Node(Void), Node(_)) -> rvaluet
         | (Graph(_), Graph(Void)) -> lvaluet
         | (Graph(Void), Graph(_)) -> rvaluet
