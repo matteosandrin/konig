@@ -1,0 +1,24 @@
+ko int main() {
+    list<node<int>> l;
+    node<int> x;
+    node<int> y;
+    node<int> z;
+    int i;
+
+    l = [
+        new node{101},
+        new node{202},
+        new node{303}
+    ];
+
+    for (i=0; i < l.length; i = i+1) {
+        print(l[i].val);
+    }
+
+    pop(l, 1);
+
+    for (i=0; i < l.length; i = i+1) {
+        print(l[i].val);
+    }
+    
+}
