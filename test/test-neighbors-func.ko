@@ -1,0 +1,30 @@
+ko int main() {
+    graph<string> g;
+    node<string> n1;
+    node<string> n2;
+    node<string> n3;
+    list<node<string>> nn;
+    int i;
+
+    g = new graph{};
+    n1 = new node{"one"};
+    n2 = new node{"two"};
+    n3 = new node{"three"};
+
+    n1 @ g;
+    n2 @ g;
+    n3 @ g;
+
+    setEdge(g, n1, n2, 1.0);
+    setEdge(g, n2, n1, 1.0);
+    setEdge(g, n1, n3, 1.0);
+    setEdge(g, n2, n3, 1.0);
+
+    nn = neighbors(g, n1);
+
+    print(nn.length);
+
+    for (i = 0; i < nn.length; i = i+1) {
+        printString(nn[i].val);
+    }
+}
