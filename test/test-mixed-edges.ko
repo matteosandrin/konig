@@ -1,0 +1,23 @@
+ko int main() {
+	node<string> a = new node{"A"};
+	node<string> b = new node{"B"};
+	node<string> c = new node{"C"};
+	graph<int> g;
+
+	a @ g
+	b @ g
+	c @ g
+
+	setEdge(g,a,b,5.0)
+	setEdge(g,a,c,6.0)
+	setEdge(g,b,c,7.0)
+    setDirEdge(g,c,b,2.0)
+
+    edge bc = getEdge(g,b,c)
+	edge cb = getEdge(g,c,b)
+
+	printb(bc.directed)
+	printf(bc.weight)
+	printb(cb.directed)
+	printf(cb.weight)
+}
