@@ -91,6 +91,10 @@ let translate (globals, functions) =
       L.function_type void_ptr_t [| arr_t; i32_t |] in
   let get_array_f = 
       L.declare_function "get_array" get_array_t the_module in
+  let pop_array_t =
+      L.function_type i32_t [| arr_t; i32_t |] in
+  let pop_array_f = 
+      L.declare_function "pop_array" pop_array_t the_module in
 
   (* node functions *)
   let init_node_t =
@@ -223,7 +227,10 @@ let translate (globals, functions) =
       | SListLit exps ->
         let arr = L.build_call init_array_f [||] "init_array" builder in
         let exps' = List.map (fun e -> expr builder e) exps in
-        let typ = (fst (List.hd exps)) in
+        let typ = match exps with 
+          [] -> A.Void
+        | _  -> (fst (List.hd exps)) 
+        in
         let append e_val =
           let data = 
             let d = L.build_malloc (ltype_of_typ typ) "data" builder in
@@ -373,7 +380,21 @@ let translate (globals, functions) =
         and n2' = (expr builder n2)
         and w' = (expr builder w)
         in
-        L.build_call update_edge_f [| g'; n1'; n2'; w' |] "update_edge" builder 
+        L.build_call update_edge_f [| g'; n1'; n2'; w' |] "update_edge" builder
+      | SCall ("append", [a; e]) ->
+        let arr  = (expr builder a)
+        and e' = (expr builder e)
+        in
+        let data = 
+          let d = L.build_malloc (ltype_of_typ (fst e)) "data" builder in
+          ignore(L.build_store e' d builder); d
+        in
+        let vdata = L.build_bitcast data void_ptr_t "vdata" builder in
+        L.build_call append_array_f [| arr; vdata |] "append_array" builder 
+      | SCall ("pop", [a; idx]) ->
+        let arr = (expr builder a) in
+        let i   = (expr builder idx) in
+        L.build_call pop_array_f [| arr; i |] "pop_array" builder
       | SCall (f, args) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
 	 let llargs = List.rev (List.map (expr builder) (List.rev args)) in
