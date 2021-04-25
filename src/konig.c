@@ -49,8 +49,9 @@ int32_t pop_array(array *a, int32_t index);
 node* init_node(void* data);
 edge* init_edge(node* from, node* to, bool directed, double weight);
 graph* init_graph();
+array* neighbors(graph* g, node* n);
 
-elem* find_elem_by_id(char* id, graph* g);
+elem* find_elem_by_id(char* id, array* nodes);
 graph* add_node(node* n, graph* g);
 graph* del_node(node* n, graph* g);
 
@@ -183,8 +184,23 @@ graph* init_graph() {
     return g;
 }
 
-elem* find_elem_by_id(char* id, graph* g) {
-    elem* curr = g->nodes->head;
+array* neighbors(graph* g, node* n) {
+    char* ref = n->id;
+    array* result = init_array();
+    elem* curr = g->edges->head;
+    while (curr) {
+        edge* e = (edge*)curr->data;
+        if (strcmp(ref, e->from->id) == 0 && find_elem_by_id(e->to->id, result) == NULL)
+            append_array(result, e->to);
+        if (strcmp(ref, e->to->id) == 0 && find_elem_by_id(e->from->id, result) == NULL)
+            append_array(result, e->from);
+        curr = curr->next;
+    }
+    return result;
+}
+
+elem* find_elem_by_id(char* id, array* nodes) {
+    elem* curr = nodes->head;
     while (curr) {
         node* n = (node*)curr->data;
         if (strcmp(id, n->id) == 0)
@@ -195,7 +211,7 @@ elem* find_elem_by_id(char* id, graph* g) {
 }
 
 graph* add_node(node* n, graph* g) {
-    if (find_elem_by_id(n->id, g) != NULL) {
+    if (find_elem_by_id(n->id, g->nodes) != NULL) {
         fprintf(stderr, "ERROR: adding duplicate node to graph");
         exit(1);
     }
@@ -204,7 +220,7 @@ graph* add_node(node* n, graph* g) {
 }
 
 graph* del_node(node* n, graph* g) {
-    elem* e = find_elem_by_id(n->id, g);
+    elem* e = find_elem_by_id(n->id, g->nodes);
     delete_array(g->nodes, e);
     return g;
 }
@@ -224,8 +240,8 @@ elem* find_elem_by_from_to(graph* g, node* from, node* to) {
 }
 
 edge* set_edge_helper(graph* g, node* from, node* to, bool directed, double weight) {
-    elem* elem1 = find_elem_by_id(from->id, g);
-    elem* elem2 = find_elem_by_id(to->id, g);
+    elem* elem1 = find_elem_by_id(from->id, g->nodes);
+    elem* elem2 = find_elem_by_id(to->id, g->nodes);
 
     if (elem1 == NULL || elem2 == NULL) {
         fprintf(stderr, "ERROR: attempting to create edge between nodes not in graph\n");

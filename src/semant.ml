@@ -106,6 +106,14 @@ let check (globals, functions) =
     body = [];
   } built_in_decls
   in
+  let built_in_decls = StringMap.add "neighbors" {
+    typ = List(Node(Void));
+    fname = "neighbors";
+    formals = [(Graph(Void), "g"); (Node(Void), "n")];
+    locals = [];
+    body = [];
+  } built_in_decls
+  in
 
   (* Add function name to symbol table *)
   let add_func map fd = 
@@ -149,6 +157,8 @@ let check (globals, functions) =
         | (Graph(Void), Graph(_)) -> rvaluet
         | (List(_), List(Void)) -> lvaluet
         | (List(Void), List(_)) -> rvaluet
+        | (List(Node(_)), List(Node(Void))) -> lvaluet
+        | (List(Node(Void)), List(Node(_))) -> rvaluet
         | _ -> if lvaluet = rvaluet
           then lvaluet
           else raise (Failure err)
@@ -194,7 +204,7 @@ let check (globals, functions) =
         in 
         let typ = (fst (List.hd sexps))
         in (Node(typ), SNodeLit(sexps))
-      | GraphLit(exps) as ex -> 
+      | GraphLit(exps) -> 
         let sexps = match (List.length exps) with
             0 -> (List.map (fun e -> expr e) exps)
           | _ -> raise ( Failure ("illegal number of arguments for new graph{}. Must have exactly zero arguments"))
@@ -267,9 +277,9 @@ let check (globals, functions) =
       | Index (name, ex) ->
           let (t, e) = expr ex in
           match t with
-            Int -> match (type_of_identifier name) with
+            Int -> (match (type_of_identifier name) with
               List(t') -> (t' , SIndex(name, (Int, e)))
-              | _ -> raise ( Failure ("illegal type. expecting an array, found " ^ string_of_typ (type_of_identifier name)))
+              | _ -> raise ( Failure ("illegal type. expecting an array, found " ^ string_of_typ (type_of_identifier name))))
             | _ -> raise ( Failure ("illegal array index type. expecting Int, found " ^ string_of_typ t))
     in
 

@@ -137,6 +137,10 @@ let translate (globals, functions) =
       L.function_type graph_t [||] in
   let init_graph_f =
       L.declare_function "init_graph" init_graph_t the_module in
+  let neighbors_t =
+      L.function_type arr_t [| graph_t; node_t |] in
+  let neighbors_f =
+      L.declare_function "neighbors" neighbors_t the_module in
 
   (* property getters *)
   let get_node_val_t =
@@ -232,9 +236,11 @@ let translate (globals, functions) =
         | _  -> (fst (List.hd exps)) 
         in
         let append e_val =
-          let data = 
-            let d = L.build_malloc (ltype_of_typ typ) "data" builder in
-            ignore(L.build_store e_val d builder); d
+          let data = match typ with
+            (* if we're storing an object, the result is already a pointer, so don't need to malloc space for it *)
+            A.Node(_) | A.Edge | A.Graph(_) | A.List(_) | A.Str -> e_val
+          | _ -> let d = L.build_malloc (ltype_of_typ typ) "data" builder in
+                  ignore(L.build_store e_val d builder); d
           in
           let vdata = L.build_bitcast data void_ptr_t "vdata" builder in
           L.build_call append_array_f [| arr; vdata |] "append_array" builder
@@ -256,9 +262,14 @@ let translate (globals, functions) =
         let arr   = L.build_load (lookup s) s builder in
         let t     = ltype_of_typ gtyp in
         let idx   = expr builder e in
-        let vdata = L.build_call get_array_f [| arr; idx |] "get_array" builder in
-        let data  = L.build_bitcast vdata (L.pointer_type t) "data" builder in
-        L.build_load data "data" builder
+        let vdata = L.build_call get_array_f [| arr; idx |] "get_array" builder in (
+        match gtyp with
+          (* if we're accessing an object, the result is already a pointer, so don't need to load it *)
+          A.Node(_) | A.Edge | A.Graph(_) | A.List(_) | A.Str ->
+            L.build_bitcast vdata t "data" builder
+        | _ ->
+            let data = L.build_bitcast vdata (L.pointer_type t) "data" builder in
+            L.build_load data "data" builder)
       | SProp (e, prop) -> 
         let cast_and_load ptr = (
           let typ = (L.pointer_type (ltype_of_typ gtyp)) in
@@ -384,10 +395,12 @@ let translate (globals, functions) =
       | SCall ("append", [a; e]) ->
         let arr  = (expr builder a)
         and e' = (expr builder e)
-        in
-        let data = 
-          let d = L.build_malloc (ltype_of_typ (fst e)) "data" builder in
-          ignore(L.build_store e' d builder); d
+        and typ = (fst e) in
+        let data = (match typ with
+          (* if we're storing an object, the result is already a pointer, so don't need to malloc space for it *)
+          A.Node(_) | A.Edge | A.Graph(_) | A.List(_) | A.Str -> e'
+        | _ -> let d = L.build_malloc (ltype_of_typ typ) "data" builder in
+                ignore(L.build_store e' d builder); d)
         in
         let vdata = L.build_bitcast data void_ptr_t "vdata" builder in
         L.build_call append_array_f [| arr; vdata |] "append_array" builder 
@@ -395,6 +408,11 @@ let translate (globals, functions) =
         let arr = (expr builder a) in
         let i   = (expr builder idx) in
         L.build_call pop_array_f [| arr; i |] "pop_array" builder
+      | SCall ("neighbors", [g; n]) ->
+        let g'  = (expr builder g)
+        and n' = (expr builder n)
+        in
+        L.build_call neighbors_f [| g'; n' |] "neighbors" builder
       | SCall (f, args) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
 	 let llargs = List.rev (List.map (expr builder) (List.rev args)) in
