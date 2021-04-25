@@ -7,9 +7,10 @@ type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
 type uop = Neg | Not
 
 type typ = Int | Bool | Float | Void |
-           Edge | Graph | Str |
+           Edge | Str |
            List of typ |
-           Node of typ
+           Node of typ |
+           Graph of typ
 
 type bind = typ * string
 

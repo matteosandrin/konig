@@ -48,7 +48,7 @@ let translate (globals, functions) =
     | A.Str -> str_t
     | A.List(typ)  -> arr_t
     | A.Node(typ)  -> node_t
-    | A.Graph -> graph_t
+    | A.Graph(typ) -> graph_t
   in
 
   (* Create a map of global variables after creating each *)
@@ -69,6 +69,10 @@ let translate (globals, functions) =
       L.function_type i32_t [| node_t |] in
   let print_node_f =
       L.declare_function "print_node" print_node_t the_module in
+  let print_edge_t =
+     L.function_type i32_t [| edge_t |] in
+  let print_edge_f =
+     L.declare_function "print_edge" print_edge_t the_module in
   let print_graph_t =
       L.function_type i32_t [| graph_t |] in
   let print_graph_f =
@@ -151,7 +155,11 @@ let translate (globals, functions) =
       L.function_type str_t [| edge_t |] in
   let get_edge_id_f = 
       L.declare_function "get_edge_id" get_edge_id_t the_module in
-
+  let get_array_length_t =
+      L.function_type i32_t [| arr_t |] in
+  let get_array_length_f = 
+      L.declare_function "get_array_length" get_array_length_t the_module in
+  
   (* Define each function (arguments and return type) so we can 
      call it even before we've created its body *)
   let function_decls : (L.llvalue * sfunc_decl) StringMap.t =
@@ -178,7 +186,7 @@ let translate (globals, functions) =
     let local_vars =
       let add_formal m (t, n) p = 
         L.set_value_name n p;
-	let local = L.build_alloca (ltype_of_typ t) n builder in
+	    let local = L.build_alloca (ltype_of_typ t) n builder in
         ignore (L.build_store p local builder);
 	StringMap.add n local m 
 
@@ -237,9 +245,9 @@ let translate (globals, functions) =
         let arr   = L.build_load (lookup s) s builder in
         let t     = ltype_of_typ gtyp in
         let idx   = expr builder e in
-        let data  = L.build_call get_array_f [| arr; idx |] "get_array" builder in
-        let vdata = L.build_bitcast data (L.pointer_type t) "vdata" builder in
-        L.build_load vdata "vdata" builder
+        let vdata = L.build_call get_array_f [| arr; idx |] "get_array" builder in
+        let data  = L.build_bitcast vdata (L.pointer_type t) "data" builder in
+        L.build_load data "data" builder
       | SProp (e, prop) -> 
         let cast_and_load ptr = (
           let typ = (L.pointer_type (ltype_of_typ gtyp)) in
@@ -248,17 +256,19 @@ let translate (globals, functions) =
         in
         let e' = (expr builder e) in (
         match (fst e, prop) with
-          (Node(_), "val") -> 
+          (A.Node(_), "val") -> 
             let vdata = L.build_call get_node_val_f [| e' |] "get_node_val" builder in
             cast_and_load vdata
-        | (Node(_), "id") ->
+        | (A.Node(_), "id") ->
             L.build_call get_node_id_f [| e' |] "get_node_id" builder
-        | (Edge, "directed") ->
+        | (A.Edge, "directed") ->
             L.build_call get_edge_directed_f [| e' |] "get_edge_directed" builder
-        | (Edge, "weight") ->
+        | (A.Edge, "weight") ->
             L.build_call get_edge_weight_f [| e' |] "get_edge_weight" builder
-        | (Edge(_), "id") ->
+        | (A.Edge, "id") ->
           L.build_call get_edge_id_f [| e' |] "get_edge_id" builder
+        | (A.List(_), "length") ->
+          L.build_call get_array_length_f [| e' |] "get_array_length" builder
         | _ -> raise (Failure ("ERROR: internal error, semant should have rejected")))
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
         let e1' = expr builder e1
@@ -274,7 +284,7 @@ let translate (globals, functions) =
         | A.Leq     -> L.build_fcmp L.Fcmp.Ole
         | A.Greater -> L.build_fcmp L.Fcmp.Ogt
         | A.Geq     -> L.build_fcmp L.Fcmp.Oge
-        | A.And | A.Or ->
+        | A.And | A.Or | A.Addnode | A.Delnode ->
             raise (Failure "internal error: semant should have rejected and/or on float")
         ) e1' e2' "tmp" builder
       | SBinop (e1, A.Addnode, e2) -> 
@@ -320,6 +330,8 @@ let translate (globals, functions) =
           "printf" builder
       | SCall ("printNode", [e]) ->
         L.build_call print_node_f [| (expr builder e) |] "print_node" builder
+      | SCall ("printEdge", [e]) ->
+        L.build_call print_edge_f [| (expr builder e) |] "print_edge" builder
       | SCall ("printGraph", [e]) ->
         L.build_call print_graph_f [| (expr builder e) |] "print_graph" builder
       (* edge functions *)

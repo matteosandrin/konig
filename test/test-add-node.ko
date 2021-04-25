@@ -2,7 +2,7 @@ ko int main() {
     node<int> n1;
     node<int> n2;
     node<int> n3;
-    graph g;
+    graph<int> g;
 
     n1 = new node{10};
     print(n1.val);
@@ -14,5 +14,5 @@ ko int main() {
 
     n1 @ g;
     n2 @ g;
-    n1 @ g;
+    n3 @ g;
 }

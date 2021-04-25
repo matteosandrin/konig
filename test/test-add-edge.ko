@@ -1,7 +1,7 @@
 ko int main() {
 	node<int> n1;
 	node<int> n2;
-	graph g;
+	graph<int> g;
 	edge e;
 
 	n1 = new node{100};

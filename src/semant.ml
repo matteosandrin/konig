@@ -46,13 +46,14 @@ let check (globals, functions) =
       ("printf", Float);
       ("printString", Str);
       ("printNode", Node(Void));
-      ("printGraph", Graph);
+      ("printEdge", Edge);
+      ("printGraph", Graph(Void));
     ]
   in
   let built_in_decls = StringMap.add "setEdge" {
     typ = Edge;
     fname = "setEdge";
-    formals = [(Graph, "g"); (Node(Void), "from"); (Node(Void), "to"); (Float, "weight")];
+    formals = [(Graph(Void), "g"); (Node(Void), "from"); (Node(Void), "to"); (Float, "weight")];
     locals = [];
     body = [];
   } built_in_decls
@@ -60,7 +61,7 @@ let check (globals, functions) =
   let built_in_decls = StringMap.add "setDirEdge" {
     typ = Edge;
     fname = "setDirEdge";
-    formals = [(Graph, "g"); (Node(Void), "from"); (Node(Void), "to"); (Float, "weight")];
+    formals = [(Graph(Void), "g"); (Node(Void), "from"); (Node(Void), "to"); (Float, "weight")];
     locals = [];
     body = [];
   } built_in_decls
@@ -68,7 +69,7 @@ let check (globals, functions) =
   let built_in_decls = StringMap.add "getEdge" {
     typ = Edge;
     fname = "getEdge";
-    formals = [(Graph, "g"); (Node(Void), "from"); (Node(Void), "to")];
+    formals = [(Graph(Void), "g"); (Node(Void), "from"); (Node(Void), "to")];
     locals = [];
     body = [];
   } built_in_decls
@@ -76,7 +77,7 @@ let check (globals, functions) =
   let built_in_decls = StringMap.add "deleteEdge" {
     typ = Edge;
     fname = "deleteEdge";
-    formals = [(Graph, "g"); (Node(Void), "from"); (Node(Void), "to")];
+    formals = [(Graph(Void), "g"); (Node(Void), "from"); (Node(Void), "to")];
     locals = [];
     body = [];
   } built_in_decls
@@ -84,7 +85,7 @@ let check (globals, functions) =
   let built_in_decls = StringMap.add "updateEdge" {
     typ = Edge;
     fname = "updateEdge";
-    formals = [(Graph, "g"); (Node(Void), "from"); (Node(Void), "to"); (Float, "weight")];
+    formals = [(Graph(Void), "g"); (Node(Void), "from"); (Node(Void), "to"); (Float, "weight")];
     locals = [];
     body = [];
   } built_in_decls
@@ -124,7 +125,12 @@ let check (globals, functions) =
     let check_assign lvaluet rvaluet err =
       match (lvaluet, rvaluet) with
         (* this allows us to cast a Node<int> to Node<void>, to support print_node *)
-        (Node(_), Node(_)) -> rvaluet
+          (Node(_), Node(Void)) -> lvaluet
+        | (Node(Void), Node(_)) -> rvaluet
+        | (Graph(_), Graph(Void)) -> lvaluet
+        | (Graph(Void), Graph(_)) -> rvaluet
+        | (List(_), List(Void)) -> lvaluet
+        | (List(Void), List(_)) -> rvaluet
         | _ -> if lvaluet = rvaluet
           then lvaluet
           else raise (Failure err)
@@ -170,11 +176,11 @@ let check (globals, functions) =
         in 
         let typ = (fst (List.hd sexps))
         in (Node(typ), SNodeLit(sexps))
-      | GraphLit(exps) -> 
+      | GraphLit(exps) as ex -> 
         let sexps = match (List.length exps) with
             0 -> (List.map (fun e -> expr e) exps)
           | _ -> raise ( Failure ("illegal number of arguments for new graph{}. Must have exactly zero arguments"))
-        in (Graph, SGraphLit(sexps))
+        in (Graph(Void), SGraphLit(sexps))
       | Assign(var, e) as ex -> 
           let lt = type_of_identifier var
           and (rt, e') = expr e in
@@ -189,6 +195,7 @@ let check (globals, functions) =
           | (Edge, "directed") -> Bool
           | (Edge, "weight") -> Float 
           | (Edge, "id") -> Str
+          | (List t, "length") -> Int
           | (_, _) -> raise (Failure ("illegal property access"))
         in
         (pt, SProp (e', prop))
@@ -214,11 +221,11 @@ let check (globals, functions) =
           | Less | Leq | Greater | Geq
                      when same && (t1 = Int || t1 = Float) -> Bool
           | And | Or when same && t1 = Bool -> Bool
-          | Addnode | Delnode when t2 = Graph &&
-            match t1 with
-              Node (_) -> true
+          | Addnode | Delnode when 
+            match (t1, t2) with
+                (Node(subt1), Graph(subt2)) -> subt1 = subt1
               | _      -> false
-            -> Graph
+            -> t1
           | _ -> raise (
 	      Failure ("illegal binary operator " ^
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^

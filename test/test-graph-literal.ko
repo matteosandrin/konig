@@ -1,4 +1,4 @@
 ko int main() {
-    graph g;
+    graph<int> g;
     g = new graph{};
 }
