@@ -17,7 +17,7 @@ int32_t visualize_graph_helper(graph* g, char* path) {
     elem* curr = g->nodes->head;
     while (curr) {
         node* n = (node*)curr->data;
-        agnodes[i] = agnode(G, *(char**)n->data, true);
+        agnodes[i] = agnode(G, n->id, true);
         curr = curr->next;
         i++;
     }
