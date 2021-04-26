@@ -329,9 +329,10 @@ int32_t visualize_graph(graph* g, char* path) {
     if (IS_GRAPHVIZ_AVAILABLE) {
         return visualize_graph_helper(g, path);
     } else {
-        fprintf(stderr, "WARNING: The Graphviz library was not compiled with Konig. In order to use \n");
-        fprintf(stderr, "         the viz() function, please install the Graphviz library and update\n");
-        fprintf(stderr, "         the GRAPHVIZ_PATH variable in the \"./compile.sh\" script.\n");
+        fprintf(stderr, "WARNING: The Graphviz library was not compiled with Konig. " \
+                        "In order to use the viz() function, please install the " \
+                        "Graphviz library and update the GRAPHVIZ_PATH variable " \
+                        "in the \"./compile.sh\" script.\n");
         return -1;
     }
 }

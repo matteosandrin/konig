@@ -21,10 +21,10 @@ if [ "$#" -ne 1 ]; then
 fi
 
 if [ ! -d $GRAPHVIZ_PATH ]; then
-    echo "WARNING: Konig cannot find the Graphviz library, so it will be built without"
-    echo "         the viz() function. If you'd like the viz() function to work, please"
-    echo "         install Graphviz, and update the GRAPHVIZ_PATH variable in the"
-    echo "         \"./compile.sh\" script."
+    echo "[!] WARNING: Konig cannot find the Graphviz library, so it will be built \
+without the viz() function. If you'd like the viz() function to work, please \
+install Graphviz, and update the GRAPHVIZ_PATH variable in the \"./compile.sh\" \
+script."
     echo ""
 fi
 
