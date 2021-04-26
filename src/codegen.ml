@@ -141,6 +141,10 @@ let translate (globals, functions) =
       L.function_type arr_t [| graph_t; node_t |] in
   let neighbors_f =
       L.declare_function "neighbors" neighbors_t the_module in
+  let visualize_graph_t =
+      L.function_type i32_t [| graph_t; str_t |] in
+  let visualize_graph_f =
+      L.declare_function "visualize_graph" visualize_graph_t the_module in
 
   (* property getters *)
   let get_node_val_t =
@@ -419,6 +423,11 @@ let translate (globals, functions) =
         and n' = (expr builder n)
         in
         L.build_call neighbors_f [| g'; n' |] "neighbors" builder
+      | SCall ("viz", [g; p]) ->
+        let g'  = (expr builder g)
+        and p' = (expr builder p)
+        in
+        L.build_call visualize_graph_f [| g'; p' |] "visualize_graph" builder
       | SCall (f, args) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
 	 let llargs = List.rev (List.map (expr builder) (List.rev args)) in

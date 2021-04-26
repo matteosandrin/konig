@@ -5,7 +5,7 @@ CC=cc
 GCC=gcc
 targets := $(wildcard **/*.mll) $(wildcard **/*.mly) $(wildcard **/*.ml)
 
-all: konig.native konig.o
+all: clean konig.native konig.o
 
 konig.native: $(targets)
 	opam config exec -- \
@@ -16,10 +16,10 @@ konig.native: $(targets)
 	clang -emit-llvm -c src/konig.c -o konig.bc
 	
 ast_test:
-	./_build/konig.native -a ./pretty_ast_test.ko
+	./konig.native -a ./src/ast/pretty_ast_test.ko
 
 sast_test:
-	./_build/konig.native -s ./pretty_sast_test.ko
+	./konig.native -s ./src/sast/pretty_sast_test.ko
 
 clean:
 	ocamlbuild -clean
