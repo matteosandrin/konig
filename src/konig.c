@@ -38,7 +38,6 @@ int32_t delete_array(array* a, elem* e) {
         e->prev->next = e->next;
     if (a->tail == e)
         a->tail = e->prev;
-    free(e);
     a->length--;
     return 0;
 }
