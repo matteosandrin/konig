@@ -8,9 +8,10 @@ echo "  #                                    #"
 echo "  ######################################"
 echo ""
 
-LLC=/usr/local/opt/llvm/bin/llc
-GRAPHVIZ_PATH=/usr/local/opt/graphviz/bin
 GCC=gcc
+LLC=/usr/local/opt/llvm/bin/llc
+# If on Linux, change this to /usr/include/graphviz 
+GRAPHVIZ_PATH=/usr/local/opt/graphviz/lib
 LIBS="-L$GRAPHVIZ_PATH -lgvc -lcgraph -lcdt"
 
 if [ "$#" -ne 1 ]; then
