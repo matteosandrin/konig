@@ -14,6 +14,10 @@ LLC=/usr/local/opt/llvm/bin/llc
 GRAPHVIZ_PATH=/usr/local/opt/graphviz/lib
 LIBS="-L$GRAPHVIZ_PATH -lgvc -lcgraph -lcdt"
 
+if [ $(which llc) ]; then
+    LLC=llc
+fi
+
 if [ "$#" -ne 1 ]; then
     echo "ERROR: incorrect number of parameters"
     echo "Usage:"
