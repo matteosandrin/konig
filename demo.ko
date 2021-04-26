@@ -3,8 +3,11 @@ ko int main() {
     node<string> n1;
     node<string> n2;
     node<string> n3;
+    node<string> n4;
     graph<string> g;
     list<node<string>> nds;
+    list<edge> ee;
+    list<node<string>> nbrs;
     int i;
 
     // initialize graph
@@ -12,21 +15,47 @@ ko int main() {
     n1 = new node{"Matteo"};
     n2 = new node{"Delilah"};
     n3 = new node{"Lord"};
+    n4 = new node{"Konig"};
 
     // add nodes to graph
     n1 @ g;
     n2 @ g;
     n3 @ g;
+    n4 @ g;
 
-    // fully connected graph
-    setEdge(g, n1, n2, 1.0);
-    setEdge(g, n2, n3, 1.0);
-    setEdge(g, n3, n1, 1.0);
+    // add edges to graph
+    setEdge(g, n1, n2, 1.1);
+    setEdge(g, n2, n3, 1.2);
+    setEdge(g, n3, n1, 1.3);
+    setEdge(g, n4, n1, 1.4);
+    setEdge(g, n4, n2, 1.5);
+    setEdge(g, n4, n3, 1.6);
 
     nds = g.nodes;
 
+    printString("These are the nodes in the graph:");
     for (i = 0; i < nds.length; i = i+1) {
         printString(nds[i].val);
+        printNode(nds[i]);
     }
+
+    ee = g.edges;
+
+    printString("");
+    printString("These are the edges in the graph:");
+    for (i = 0; i < ee.length; i = i+1) {
+        printEdge(ee[i]);
+    }
+
+    printString("");
+    printString("These are the neighbors of Matteo:");
+
+    nbrs = neighbors(g, n1);
+    
+    for (i = 0; i < nbrs.length; i = i+1) {
+        printString(nbrs[i].val);
+    }
+
+    viz(g, "./demo.pdf");
 
 }

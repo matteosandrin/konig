@@ -1,87 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-#include <graphviz/cgraph.h>
-#include <graphviz/gvc.h>
-
-#define ID_LEN 8
-
-// Type definitions
-
-typedef struct Elem {
-    void* data;
-    struct Elem* next;
-    struct Elem* prev;
-} elem;
-
-typedef struct Array {
-    int32_t length;
-    elem* head;
-    elem* tail;
-} array;
-
-typedef struct Node {
-    char* id;
-    void* data;
-} node;
-
-typedef struct Edge {
-    char* id;
-    node* from;
-    node* to;
-    bool directed;
-    double weight;
-} edge;
-
-typedef struct Graph {
-    char* id;
-    array* nodes;
-    array* edges;
-} graph;
-
-// Function signatures
-
-array* init_array();
-int32_t append_array(array* a, void* data);
-int32_t delete_array(array* a, elem* e);
-void* get_array(array* a, int32_t index);
-int32_t pop_array(array *a, int32_t index);
-
-node* init_node(void* data);
-edge* init_edge(node* from, node* to, bool directed, double weight);
-graph* init_graph();
-array* neighbors(graph* g, node* n);
-
-elem* find_elem_by_id(char* id, array* nodes);
-int32_t find_index_by_id(char* id, array* a);
-graph* add_node(node* n, graph* g);
-graph* del_node(node* n, graph* g);
-
-elem* find_elem_by_from_to(graph* g, node* from, node* to);
-edge* set_edge_helper(graph* g, node* from, node* to, bool directed, double weight);
-edge* set_edge(graph* g, node* from, node* to, double weight);
-edge* set_dir_edge(graph* g, node* from, node* to, double weight);
-edge* get_edge(graph* g, node* from, node* to);
-edge* del_edge(graph* g, node* from, node* to);
-edge* update_edge(graph* g, node* from, node* to, double weight);
-
-int32_t get_array_length(array* a);
-void* get_node_val(node* n);
-char* get_node_id(node* n);
-bool get_edge_directed(edge* e);
-double get_edge_weight(edge* e);
-char* get_edge_id(edge* e);
-array* get_graph_nodes(graph* g);
-array* get_graph_edges(graph* g);
-
-char* random_id(int32_t length);
-int32_t print_node(node* n);
-int32_t print_edge(edge* e);
-int32_t print_graph(graph* g);
-int32_t visualize_graph(graph* g, char* path);
-
-// Function bodies
+#include "konig.h"
 
 array* init_array() {
     array* arr = (array *) malloc(sizeof(array));
@@ -409,45 +326,12 @@ int32_t print_graph(graph* g) {
 }
 
 int32_t visualize_graph(graph* g, char* path) {
-
-    Agraph_t* G;
-    GVC_t* gvc;
-    Agnode_t* agnodes[g->nodes->length];
-    FILE *f;
-
-    gvc = gvContext();
-    G = agopen("graph", Agdirected, NULL);
-    f = fopen(path, "wb");
-
-    int32_t i = 0;
-    elem* curr = g->nodes->head;
-    while (curr) {
-        node* n = (node*)curr->data;
-        agnodes[i] = agnode(G, n->id, true);
-        curr = curr->next;
-        i++;
+    if (IS_GRAPHVIZ_AVAILABLE) {
+        return visualize_graph_helper(g, path);
+    } else {
+        fprintf(stderr, "WARNING: The Graphviz library was not compiled with Konig. In order to use \n");
+        fprintf(stderr, "         the viz() function, please install the Graphviz library and update\n");
+        fprintf(stderr, "         the GRAPHVIZ_PATH variable in the \"./compile.sh\" script.\n");
+        return -1;
     }
-
-    i = 0;
-    curr = g->edges->head;
-    agattr(G, AGEDGE, "label", "0");
-    while (curr) {
-        edge* e = (edge*)curr->data;
-        char* weight = (char*) malloc(sizeof(char) * 10);
-        snprintf(weight, 10, "%.3f", e->weight);
-        int32_t from_idx = find_index_by_id(e->from->id, g->nodes);
-        int32_t to_idx = find_index_by_id(e->to->id, g->nodes);
-        Agedge_t *agE = agedge(G, agnodes[from_idx], agnodes[to_idx], "", true);
-        agset(agE, "label", weight);
-        curr = curr->next;
-        i++;
-        free(weight);
-    }
-
-    gvLayout (gvc, G, "dot");
-    gvRender(gvc, G, "pdf", f);
-    gvFreeLayout(gvc, G);
-    agclose(G);
-    fclose(f);
-    return 0;
 }
