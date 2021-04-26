@@ -345,6 +345,7 @@ let translate (globals, functions) =
         | A.Leq     -> L.build_icmp L.Icmp.Sle
         | A.Greater -> L.build_icmp L.Icmp.Sgt
         | A.Geq     -> L.build_icmp L.Icmp.Sge
+        | _ -> raise (Failure "internal error: semant should have rejected")
         ) e1' e2' "tmp" builder
       | SUnop(op, ((t, _) as e)) ->
         let e' = expr builder e in

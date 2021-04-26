@@ -27,17 +27,16 @@ How to compile the `demo.ko` progam:
 2. Compile the demo program, by running `./compile.sh demo.ko`
 3. Execute the demo program by running `./demo.out`. The output is:
   
-    ```
-    Matteo  
-    Delilah  
-    Lord   
-    ```
+```
+Matteo  
+Delilah  
+Lord   
+```
 
 ## Testing
 
-In order to run the testing suite, execute the following commands:
+In order to run the testing suite, execute the following command:
 
 ```
-make
-python3 test.py
+make test
 ```
