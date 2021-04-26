@@ -12,7 +12,7 @@ brew install graphviz
 On Linux it can be installed with
 
 ```
-sudo apt install graphviz
+sudo apt install graphviz libgraphviz-dev libcgraph6
 ```
 
 If installing on Linux, please update the `$GRAPHVIZ_PATH` variable in `./compile.sh`, with the correct path to the `graphviz` library (usually `/usr/include/graphviz`).
