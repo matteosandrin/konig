@@ -15,7 +15,7 @@ On Linux it can be installed with
 sudo apt install graphviz
 ```
 
-If installing on Linux, please update the `$GRAPHVIZ_PATH` variable in `./compile.sh`, with the correct path to the `graphviz` library.
+If installing on Linux, please update the `$GRAPHVIZ_PATH` variable in `./compile.sh`, with the correct path to the `graphviz` library (usually `/usr/include/graphviz`).
 Konig will compile and run successfully without the Graphviz library, but the `viz()` function will not be available.
 
 
